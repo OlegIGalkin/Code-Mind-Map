@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+    <Metadata>
+        <Identity Id="CodeMindMap.c3a3dcb5-eb40-460e-a469-9980992fc359" Version="1.1" Language="en-US" Publisher="Oleg Galkin" />
+        <DisplayName>Code Mind Map</DisplayName>
+        <Description xml:space="preserve">A mind mapping extension with nodes linked to code.</Description>
+        <MoreInfo>https://codemindmap.com</MoreInfo>
+        <License>license_generic.txt</License>
+        <GettingStartedGuide>CodeMindMap_Quick_Start.html</GettingStartedGuide>
+        <Icon>hand_learning_map_mind_notebook_icon.ico</Icon>
+        <PreviewImage>preview_image_200x200.png</PreviewImage>
+    </Metadata>
+    <Installation>
+        <InstallationTarget Version="[17.0,18.0)" Id="Microsoft.VisualStudio.Community">
+            <ProductArchitecture>amd64</ProductArchitecture>
+        </InstallationTarget>
+        <InstallationTarget Version="[17.0,18.0)" Id="Microsoft.VisualStudio.Enterprise">
+            <ProductArchitecture>amd64</ProductArchitecture>
+        </InstallationTarget>
+        <InstallationTarget Version="[17.0,18.0)" Id="Microsoft.VisualStudio.Pro">
+            <ProductArchitecture>amd64</ProductArchitecture>
+        </InstallationTarget>
+    </Installation>
+    <Dependencies>
+        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.8,4.8]" />
+    </Dependencies>
+    <Prerequisites>
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[17.14.36015.10,18.0)" DisplayName="Основной редактор Visual Studio" />
+    </Prerequisites>
+    <Assets>
+        <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+    </Assets>
+</PackageManifest>

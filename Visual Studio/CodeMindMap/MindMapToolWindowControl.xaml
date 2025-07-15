@@ -1,0 +1,82 @@
+﻿<UserControl x:Class="CodeMindMap.MindMapToolWindowControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="700"
+             Loaded="UserControl_Loaded"
+             Unloaded="UserControl_Unloaded"
+             >
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Left">
+            <Button Margin="2" Padding="2" Click="AddChildNodeClick" ToolTip="Add selected code to node">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" FontFamily="Segoe MDL2 Assets" Text="&#xED0E;" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="Add Code Node" VerticalAlignment="Center" Visibility="Collapsed"/>
+                </Grid>
+            </Button>
+            <Button Margin="2" Padding="2" Click="GotoCodeClick" ToolTip="Go to code linked to node" x:Name="GoToCodeButton" IsEnabled="False">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" FontFamily="Segoe MDL2 Assets" Text="&#xE72A;" VerticalAlignment="Center" />
+                    <!-- &#xE72A; F0B9-->
+                    <TextBlock Grid.Column="1" Text="Go To Linked Code" VerticalAlignment="Center" Visibility="Collapsed"/>
+                </Grid>
+            </Button>
+            <Button Margin="2" Padding="2" Click="NewCodeMindMapClick" ToolTip="Create new code mind map">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" FontFamily="Segoe MDL2 Assets" Text="&#xE8F4;" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="New Code Mind Map" VerticalAlignment="Center" Visibility="Collapsed"/>
+                </Grid>
+            </Button>
+            <Button Margin="2" Padding="2" Click="OpenDevToolsWindowClick" ToolTip="Open Dev Tools" x:Name="OpenDevToolsButton">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" FontFamily="Segoe MDL2 Assets" Text="&#xEC7A;" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="Open Dev Tools" VerticalAlignment="Center" Visibility="Collapsed"/>
+                </Grid>
+            </Button>
+            <Button Margin="2" Padding="2" Click="SaveDataClick" ToolTip="Auto-save mind map as..." x:Name="SaveDataButton">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" FontFamily="Segoe MDL2 Assets" Text="&#xE74E;" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="Auto-Save As" VerticalAlignment="Center" Visibility="Collapsed"/>
+                </Grid>
+            </Button>
+            <Button Margin="2" Padding="2" Click="LoadDataClick" ToolTip="Load and link mind map data to..." x:Name="LoadDataButton">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" FontFamily="Segoe MDL2 Assets" Text="&#xE8E5;" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="Load and Link Mind Map Data" VerticalAlignment="Center" Visibility="Collapsed" />
+                </Grid>
+            </Button>
+        </StackPanel>
+        <wv2:WebView2 Grid.Row="1" x:Name="MindMapBrowser" Loaded="MindMapBrowser_Loaded" Unloaded="MindMapBrowser_Unloaded" CoreWebView2InitializationCompleted="MindMapBrowser_CoreWebView2InitializationCompleted" WebMessageReceived="MindMapBrowser_WebMessageReceived" NavigationCompleted="MindMapBrowser_NavigationCompleted" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" MinHeight="100" MinWidth="100" />
+    </Grid>
+</UserControl>

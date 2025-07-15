@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.36107.64
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeMindMap", "CodeMindMap\CodeMindMap.csproj", "{88587AB4-E454-4537-B2AA-53BAB9C593FD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{88587AB4-E454-4537-B2AA-53BAB9C593FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{88587AB4-E454-4537-B2AA-53BAB9C593FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{88587AB4-E454-4537-B2AA-53BAB9C593FD}.Debug|x64.ActiveCfg = Debug|x64
+		{88587AB4-E454-4537-B2AA-53BAB9C593FD}.Debug|x64.Build.0 = Debug|x64
+		{88587AB4-E454-4537-B2AA-53BAB9C593FD}.Release|Any CPU.ActiveCfg = Release|x64
+		{88587AB4-E454-4537-B2AA-53BAB9C593FD}.Release|Any CPU.Build.0 = Release|x64
+		{88587AB4-E454-4537-B2AA-53BAB9C593FD}.Release|x64.ActiveCfg = Release|x64
+		{88587AB4-E454-4537-B2AA-53BAB9C593FD}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DC34CBDC-3FC0-4826-811B-B75EEC66B85D}
+	EndGlobalSection
+EndGlobal

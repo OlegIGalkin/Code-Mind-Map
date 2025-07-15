@@ -1,0 +1,97 @@
+{
+  "name": "code-mind-map",
+  "displayName": "Code Mind Map",
+  "description": "A mind mapping extension with nodes linked to code.",
+  "version": "0.0.3",
+  "publisher": "Kentich",
+  "homepage": "https://codemindmap.com/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OlegIGalkin/Code-Mind-Map.git"
+  },
+  "icon": "icon.png",
+  "preview": false,
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Snippets",
+    "Visualization",
+    "Notebooks",
+    "Other"
+  ],
+  "keywords": [
+    "Mind Map",
+    "Mind Mapping",
+    "Code Map",
+    "Code Mapping",
+    "Bookmarks",
+    "Bookmark",
+    "Bookmarking",
+    "Snippets",
+    "Code Snippets",
+    "Code Snippet"
+  ],
+  "qna": "marketplace",
+  "pricing": "Free",
+  "activationEvents": [
+    "onCommand:codeMindMap.openPanel",
+    "onCommand:codeMindMap.addCodeToNode"
+  ],
+  "main": "./out/extension.js",
+  "files": [
+    "out",
+    "src/media"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "codeMindMap.openPanel",
+        "title": "Open Code Mind Map"
+      },
+      {
+        "command": "codeMindMap.addCodeToNode",
+        "title": "Add code to the mind map node"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "codeMindMap.addCodeToNode",
+        "key": "ctrl+2 ctrl+2",
+        "mac": "cmd+2 cmd+2",
+        "when": "editorTextFocus"
+      }
+    ],
+    "configuration": {
+      "title": "Code Mind Map",
+      "properties": {
+        "codeMindMap.autoSavePath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to automatically save the mind map"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "20.x",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "glob": "^10.3.10",
+    "mocha": "^10.2.0",
+    "typescript": "^5.3.3",
+    "@vscode/test-electron": "^2.3.8"
+  }
+}
