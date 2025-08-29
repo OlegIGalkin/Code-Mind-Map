@@ -23,3 +23,13 @@ That's it! Start visualizing and navigating your code faster with **Code Mind Ma
 ## Screenshots
 
 See screenshots at [CodeMindMap.com](https://codemindmap.com/)
+
+## Versions
+
+- **v1.13**
+  - "Toggle color scheme: Light/Dark" button added.
+  - Light color scheme is default.
+  - The color scheme is saved to the auto-save file.
+  
+- **v1.12**
+  - First release of the extension.

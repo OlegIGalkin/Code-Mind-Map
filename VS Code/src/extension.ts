@@ -61,6 +61,20 @@ export class CodeMindMapPanel {
     private _lastSelectedNode: { id: string; topic: string; data: any } | undefined;
     private _pendingSaveUri: vscode.Uri | undefined;
 
+    private requestExportMindMapData() {
+        this._panel.webview.postMessage({ action: 'exportMindMapData' });
+    }
+
+    private exportIfPathKnown() {
+        if (CodeMindMapPanel._lastSavePath) {
+            console.debug('Sending exportMindMapData message to webview');
+            this._pendingSaveUri = CodeMindMapPanel._lastSavePath;
+            this.requestExportMindMapData();
+        } else {
+            console.debug('No last save path available');
+        }
+    }
+
     public static createOrShow(extensionUri: vscode.Uri) {
         const column = vscode.window.activeTextEditor
             ? vscode.window.activeTextEditor.viewColumn
@@ -114,7 +128,10 @@ export class CodeMindMapPanel {
         this._panel = panel;
         this._extensionUri = extensionUri;
         this._panel.webview.html = this._getHtmlForWebview(this._panel.webview, extensionUri);
-
+        
+        // Open dev tools on startup
+        //vscode.commands.executeCommand('workbench.action.webview.openDeveloperTools');
+        
         // Initialize _lastSelection if there's an active selection
         const initialEditor = vscode.window.activeTextEditor;
         if (initialEditor) {
@@ -274,7 +291,7 @@ export class CodeMindMapPanel {
                             // Save to workspace settings if available
                             await this.SaveToWorkspaceSettings();
                             // Request mind map data from the webview
-                            this._panel.webview.postMessage({ action: 'exportMindMapData' });
+                            this.requestExportMindMapData();
                             // Store the save URI for later use
                             this._pendingSaveUri = saveUri;
                         }
@@ -362,15 +379,14 @@ export class CodeMindMapPanel {
                         console.debug('mindMapOperation received: ' + message.operationName);
                         console.debug('Last save path:', CodeMindMapPanel._lastSavePath);
                         
-                        if (CodeMindMapPanel._lastSavePath) {
-                            console.debug('Sending exportMindMapData message to webview');
-                            this._pendingSaveUri = CodeMindMapPanel._lastSavePath;
-                            this._panel.webview.postMessage({
-                                action: 'exportMindMapData'
-                            });
-                        } else {
-                            console.debug('No last save path available');
-                        }
+                        this.exportIfPathKnown();
+                        break;
+
+                    case 'toggleColorScheme':
+                        this._panel.webview.postMessage({
+                            action: 'toggleColorScheme'
+                        });
+                        this.exportIfPathKnown();
                         break;
                 }
             },
@@ -472,46 +488,39 @@ export class CodeMindMapPanel {
     <div id="container">
         <div style="display: flex; gap: 4px; padding: 8px; background: #222; border-bottom: 1px solid #444;">
             <!-- Add Code Node -->
-            <button class="mm-btn" id="addCodeNodeBtn" title="Add selected code to node" disabled>
-                <span class="mm-icon">
-                    <svg width="20" height="20" viewBox="0 0 20 20"><rect x="2" y="2" width="16" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><line x1="10" y1="6" x2="10" y2="14" stroke="currentColor" stroke-width="2"/><line x1="6" y1="10" x2="14" y2="10" stroke="currentColor" stroke-width="2"/></svg>
-                </span>
-                <span class="mm-label">Add Code Node</span>
+            <button class="mm-btn" id="addCodeNodeBtn" title="Add selected code as a mind map node" disabled>
+                <span class="mm-icon" aria-label="Add">➕</span>
+                <span class="mm-label">Add Code Linked Node</span>
             </button>
             <!-- Go To Linked Code -->
-            <button class="mm-btn" id="goToCodeBtn" title="Go to code linked to node" disabled>
-                <span class="mm-icon">
-                    <svg width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="2"/><line x1="10" y1="2" x2="10" y2="6" stroke="currentColor" stroke-width="2"/><line x1="10" y1="14" x2="10" y2="18" stroke="currentColor" stroke-width="2"/><line x1="2" y1="10" x2="6" y2="10" stroke="currentColor" stroke-width="2"/><line x1="14" y1="10" x2="18" y2="10" stroke="currentColor" stroke-width="2"/></svg>
-                </span>
-                <span class="mm-label">Go To Linked Code</span>
+            <button class="mm-btn" id="goToCodeBtn" title="Jump to code linked to node" disabled>
+                <span class="mm-icon" aria-label="Go to link">🔗</span>
+                <span class="mm-label">Jump To Linked Code</span>
             </button>
             <!-- New Code Mind Map -->
-            <button class="mm-btn" id="newMindMapBtn" title="Create new code mind map">
-                <span class="mm-icon">
-                    <svg width="20" height="20" viewBox="0 0 20 20"><rect x="4" y="3" width="12" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><polygon points="10,7 11,10 14,10 11.5,12 12.5,15 10,13.5 7.5,15 8.5,12 6,10 9,10" fill="currentColor"/></svg>
-                </span>
+            <button class="mm-btn" id="newMindMapBtn" title="Create a new code mind map">
+                <span class="mm-icon" aria-label="New">🆕</span>
                 <span class="mm-label">New Code Mind Map</span>
             </button>
             <!-- Open Dev Tools -->
             <button class="mm-btn hidden" id="openDevToolsBtn" title="Open Dev Tools">
-                <span class="mm-icon">
-                    <svg width="20" height="20" viewBox="0 0 20 20"><path d="M17 13a4 4 0 0 1-5.66-5.66l-6.3-6.3-2.12 2.12 6.3 6.3A4 4 0 1 1 13 17l-2-2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
-                </span>
+                <span class="mm-icon" aria-label="Dev tools">🛠️</span>
                 <span class="mm-label">Open Dev Tools</span>
             </button>
             <!-- Auto-Save As -->
-            <button class="mm-btn" id="saveMindMapBtn" title="Auto-save mind map as...">
-                <span class="mm-icon">
-                    <svg width="20" height="20" viewBox="0 0 20 20"><rect x="3" y="3" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><rect x="7" y="10" width="6" height="4" fill="none" stroke="currentColor" stroke-width="2"/><rect x="7" y="5" width="6" height="2" fill="none" stroke="currentColor" stroke-width="2"/></svg>
-                </span>
-                <span class="mm-label">Auto-Save As</span>
+            <button class="mm-btn" id="saveMindMapBtn" title="Automatically save mind map as...">
+                <span class="mm-icon" aria-label="Save">💾</span>
+                <span class="mm-label">Auto-Save As...</span>
             </button>
             <!-- Load and Link Mind Map Data -->
-            <button class="mm-btn" id="loadMindMapBtn" title="Load and link mind map data to...">
-                <span class="mm-icon">
-                    <svg width="20" height="20" viewBox="0 0 20 20"><path d="M2 6h5l2 3h9v7a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6z" fill="none" stroke="currentColor" stroke-width="2"/></svg>
-                </span>
+            <button class="mm-btn" id="loadMindMapBtn" title="Load and link your mind map data to...">
+                <span class="mm-icon" aria-label="Load">📂</span>
                 <span class="mm-label">Load and Link Mind Map Data</span>
+            </button>
+            <!-- Toggle Color Scheme -->
+            <button class="mm-btn" id="toggleColorSchemeBtn" title="Toggle between Light and Dark color scheme">
+                <span class="mm-icon" aria-label="Color palette">🎨</span>
+                <span class="mm-label">Toggle Color Scheme</span>
             </button>
         </div>
         <div id="map"></div>
@@ -520,8 +529,8 @@ export class CodeMindMapPanel {
     <script type="module">
         import MindElixir from 'https://cdn.jsdelivr.net/npm/mind-elixir@^4.0.0/dist/MindElixir.js';
         const vscode = acquireVsCodeApi();
-        let data;
-        let mind;
+
+        let mind, data, themeManager;
 
         function initMindMap() {
             const options = {
@@ -535,6 +544,86 @@ export class CodeMindMapPanel {
                     }
                 }
             };
+
+            const LIGHT_THEME = {
+                        name: 'Light',
+                        // Updated color palette with more vibrant colors
+                        palette: ['#dd7878', '#ea76cb', '#8839ef', '#e64553', '#fe640b', '#df8e1d', '#40a02b', '#209fb5', '#1e66f5', '#7287fd'],
+                        // Enhanced CSS variables for better styling control
+                        cssVar: {
+                            '--node-gap-x': '30px',
+                            '--node-gap-y': '10px',
+                            '--main-gap-x': '32px',
+                            '--main-gap-y': '12px',
+                            '--root-radius': '30px',
+                            '--main-radius': '20px',
+                            '--root-color': '#ffffff',
+                            '--root-bgcolor': '#4c4f69',
+                            '--root-border-color': 'rgba(0, 0, 0, 0)',
+                            '--main-color': '#444446',
+                            '--main-bgcolor': '#ffffff',
+                            '--topic-padding': '3px',
+                            '--color': '#333333',
+                            '--bgcolor': '#f6f6f6',
+                            '--selected': '#4dc4ff',
+                            '--panel-color': '#444446',
+                            '--panel-bgcolor': '#ffffff',
+                            '--panel-border-color': '#eaeaea',
+                            '--map-padding': '50px 80px',
+                            'font-size': '14px',
+                            'font-family':'Verdana',
+                        },
+                      };
+
+            const DARK_THEME = {
+                        name: 'Dark',
+                        // Updated color palette with more vibrant colors
+                        palette: ['#848FA0', '#748BE9', '#D2F9FE', '#4145A5', '#789AFA', '#706CF4', '#EF987F', '#775DD5', '#FCEECF', '#DA7FBC'],
+                        // Enhanced CSS variables for better styling control
+                        cssVar: {
+                            '--node-gap-x': '30px',
+                            '--node-gap-y': '10px',
+                            '--main-gap-x': '32px',
+                            '--main-gap-y': '12px',
+                            '--root-radius': '30px',
+                            '--main-radius': '20px',
+                            '--root-color': '#ffffff',
+                            '--root-bgcolor': '#4c4f69',
+                            '--root-border-color': 'rgba(0, 0, 0, 0)',
+                            '--main-color': '#ffffff',
+                            '--main-bgcolor': '#4c4f69',
+                            '--topic-padding': '3px',
+                            '--color': '#E0E0E0',
+                            '--bgcolor': '#252526',
+                            '--selected': '#4dc4ff',
+                            '--panel-color': '#ffffff',
+                            '--panel-bgcolor': '#2d3748',
+                            '--panel-border-color': '#696969',
+                            '--map-padding': '50px 80px',
+                            'font-size': '14px',
+                            'font-family':'Verdana',
+                        },
+                      };
+
+            themeManager = {
+                themes: {
+                    Light: LIGHT_THEME,
+                    Dark: DARK_THEME,
+                },
+                
+                getTheme(themeName) {
+                    return this.themes[themeName];
+                },
+
+                contains(themeName) {
+                        return this.themes.hasOwnProperty(themeName);
+                    },
+
+                getAvailableThemes() {
+                        return Object.keys(this.themes);
+                    },
+            };
+
             data = {
                 nodeData: {
                     id: 'me-root',
@@ -606,25 +695,13 @@ export class CodeMindMapPanel {
                     ],
                     expanded: true,
                 },
-                theme: {
-                    name: 'Dark',
-                    type: 'dark',
-                    palette: ['#848FA0', '#748BE9', '#D2F9FE', '#4145A5', '#789AFA', '#706CF4', '#EF987F', '#775DD5', '#FCEECF', '#DA7FBC'],
-                    cssVar: {
-                        '--main-color': '#ffffff',
-                        '--main-bgcolor': '#4c4f69',
-                        '--color': '#cccccc',
-                        '--bgcolor': '#252526',
-                        '--panel-color': '#ffffff',
-                        '--panel-bgcolor': '#2d3748',
-                        '--panel-border-color': '#696969',
-                        'font-size': '10px',
-                    },
-                },
+                theme: themeManager.getTheme(LIGHT_THEME.name),
                 direction: 2
             };
+
             mind = new MindElixir(options);
             mind.init(data);
+
             mind.bus.addListener('selectNode', node => {
                 vscode.postMessage({
                     action: 'nodeSelected',
@@ -633,12 +710,14 @@ export class CodeMindMapPanel {
                     nodeData: node.data,
                 });
             });
+
             mind.bus.addListener('operation', operation => {
                 vscode.postMessage({
                     action: 'mindMapOperation',
                     operationName: operation.name,
                 });
             });
+
             document.addEventListener('click', (e) => {
                 if (e.ctrlKey && e.target.tagName === 'ME-TPC') {
                     const currentNodeObj = mind.currentNode?.nodeObj
@@ -652,6 +731,7 @@ export class CodeMindMapPanel {
                     }
                 }
             });
+
             document.addEventListener('keydown', function(e) {
                 if (e.key === ' ' || e.key === 'Spacebar') {
                     e.preventDefault();
@@ -685,7 +765,6 @@ export class CodeMindMapPanel {
                 id: 'child_' + Date.now(),
                 topic: topic,
                 children: [],
-                style: { color: '#FFFFFF' }, 
                 data: codeInfo, 
                 tags: [codeInfo.fileName]
             };
@@ -716,20 +795,79 @@ export class CodeMindMapPanel {
             }
         };
 
+        function getThemeName(mindElixirData) {
+            try {
+                // First, check if the input is valid
+                if (!mindElixirData || typeof mindElixirData !== 'object') {
+                    return '';
+                }
+
+                // Safely navigate through the nested structure
+                const theme = mindElixirData.theme || 
+                            (mindElixirData.nodeData && mindElixirData.nodeData.theme);
+
+                // Check if theme exists and has a name property
+                if (theme && typeof theme === 'object' && theme.name) {
+                    return String(theme.name);
+                }
+
+                return '';
+            } catch (error) {
+                // Catch any unexpected errors and return empty string
+                return '';
+            }
+        };
+
         window.importData = function(mindDataString = '') {
+
             if (!mind) return { success: false, error: 'Mind map not initialized' };
             if (mindDataString == '') return { success: false, error: 'No mind map data' };
+
             try {
+
                 if (mindDataString.startsWith('"') && mindDataString.endsWith('"')) {
                     mindDataString = mindDataString.substring(1, mindDataString.length - 1);
                 }
+
                 const mindData = JSON.parse(mindDataString);
+
                 mind.refresh(mindData);
+
+                const dataThemeName = getThemeName(mindData);
+
+                if (dataThemeName != '' && themeManager.contains(dataThemeName) && dataThemeName != mind.theme?.name) {
+                    mind.changeTheme(themeManager.getTheme(dataThemeName));
+                }
+
                 return { success: true, error: '' };
+
             } catch (e) {
                 console.error('Error importing data:', e);
                 return { success: false, error: e.message };
             }
+        };
+
+        window.toggleColorScheme = function() {
+
+            if (!mind) return { success: false, error: 'Mind map not initialized' };
+
+            try {
+                const availableThemeKeys = themeManager.getAvailableThemes();
+                const currentThemeName = mind.theme?.name;
+                const themeKeyToApply = availableThemeKeys.find(key => 
+                    themeManager.getTheme(key)?.name !== currentThemeName
+                );
+                if (themeKeyToApply) {
+                    const themeToApply = themeManager.getTheme(themeKeyToApply);
+                    mind.changeTheme(themeToApply);
+                    return { success: true, error: '' };
+                }
+                return { success: false, error: 'No alternative theme found' };
+            } catch (e) {
+                console.error('Error toggling the color scheme:', e);
+                return { success: false, error: e.message };
+            }
+
         };
 
         // Add event listeners for all buttons
@@ -779,6 +917,14 @@ export class CodeMindMapPanel {
             if (loadMindMapBtn) {
                 loadMindMapBtn.addEventListener('click', () => {
                     vscode.postMessage({ action: 'loadMindMap' });
+                });
+            }
+
+            // Toggle Color Scheme button
+            const toggleColorSchemeBtn = document.getElementById('toggleColorSchemeBtn');
+            if (toggleColorSchemeBtn) {
+                toggleColorSchemeBtn.addEventListener('click', () => {
+                    vscode.postMessage({ action: 'toggleColorScheme' });
                 });
             }
 
@@ -834,6 +980,11 @@ export class CodeMindMapPanel {
                 case 'resetMindMap':
                     if (mind) {
                         mind.refresh(data);
+                    }
+                    break;
+                case 'toggleColorScheme':
+                    if (mind) {
+                        window.toggleColorScheme();
                     }
                     break;
             }

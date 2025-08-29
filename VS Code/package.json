@@ -2,7 +2,7 @@
   "name": "code-mind-map",
   "displayName": "Code Mind Map",
   "description": "A mind mapping extension with nodes linked to code.",
-  "version": "0.0.3",
+  "version": "1.13.0",
   "publisher": "Kentich",
   "homepage": "https://codemindmap.com/",
   "repository": {
@@ -51,7 +51,7 @@
       },
       {
         "command": "codeMindMap.addCodeToNode",
-        "title": "Add code to the mind map node"
+        "title": "Add selected code as a mind map node"
       }
     ],
     "keybindings": [
