@@ -36,7 +36,7 @@ namespace CodeMindMap
     <script type=""module"">
         import MindElixir from ""https://cdn.jsdelivr.net/npm/mind-elixir@^4.0.0/dist/MindElixir.js"";
 
-        let mind;
+        let mind, themeManager;
 
         function initMindMap() {
             const options = {
@@ -50,6 +50,85 @@ namespace CodeMindMap
                     }
                 }
             };
+
+        const LIGHT_THEME = {
+                                name: 'Light',
+                                // Updated color palette with more vibrant colors
+                                palette: ['#dd7878', '#ea76cb', '#8839ef', '#e64553', '#fe640b', '#df8e1d', '#40a02b', '#209fb5', '#1e66f5', '#7287fd'],
+                                // Enhanced CSS variables for better styling control
+                                cssVar: {
+                                    '--node-gap-x': '30px',
+                                    '--node-gap-y': '10px',
+                                    '--main-gap-x': '32px',
+                                    '--main-gap-y': '12px',
+                                    '--root-radius': '30px',
+                                    '--main-radius': '20px',
+                                    '--root-color': '#ffffff',
+                                    '--root-bgcolor': '#4c4f69',
+                                    '--root-border-color': 'rgba(0, 0, 0, 0)',
+                                    '--main-color': '#444446',
+                                    '--main-bgcolor': '#ffffff',
+                                    '--topic-padding': '3px',
+                                    '--color': '#333333',
+                                    '--bgcolor': '#f6f6f6',
+                                    '--selected': '#4dc4ff',
+                                    '--panel-color': '#444446',
+                                    '--panel-bgcolor': '#ffffff',
+                                    '--panel-border-color': '#eaeaea',
+                                    '--map-padding': '50px 80px',
+                                    'font-size': '14px',
+                                    'font-family':'Verdana',
+                                },
+                              };
+
+        const DARK_THEME = {
+                                name: 'Dark',
+                                // Updated color palette with more vibrant colors
+                                palette: ['#848FA0', '#748BE9', '#D2F9FE', '#4145A5', '#789AFA', '#706CF4', '#EF987F', '#775DD5', '#FCEECF', '#DA7FBC'],
+                                // Enhanced CSS variables for better styling control
+                                cssVar: {
+                                    '--node-gap-x': '30px',
+                                    '--node-gap-y': '10px',
+                                    '--main-gap-x': '32px',
+                                    '--main-gap-y': '12px',
+                                    '--root-radius': '30px',
+                                    '--main-radius': '20px',
+                                    '--root-color': '#ffffff',
+                                    '--root-bgcolor': '#4c4f69',
+                                    '--root-border-color': 'rgba(0, 0, 0, 0)',
+                                    '--main-color': '#ffffff',
+                                    '--main-bgcolor': '#4c4f69',
+                                    '--topic-padding': '3px',
+                                    '--color': '#E0E0E0',
+                                    '--bgcolor': '#252526',
+                                    '--selected': '#4dc4ff',
+                                    '--panel-color': '#ffffff',
+                                    '--panel-bgcolor': '#2d3748',
+                                    '--panel-border-color': '#696969',
+                                    '--map-padding': '50px 80px',
+                                    'font-size': '14px',
+                                    'font-family':'Verdana',
+                                },
+                              };
+
+        themeManager = {
+            themes: {
+                Light: LIGHT_THEME,
+                Dark: DARK_THEME,
+            },
+    
+            getTheme(themeName) {
+                return this.themes[themeName];
+            },
+
+            contains(themeName) {
+                    return this.themes.hasOwnProperty(themeName);
+                },
+
+            getAvailableThemes() {
+                    return Object.keys(this.themes);
+                },
+        };
             
             const data = {
                 nodeData: {
@@ -107,21 +186,7 @@ namespace CodeMindMap
                     ],
                     expanded: true,
                 },
-                theme: {
-                    name: 'Dark',
-                    type: 'dark',
-                    palette: ['#848FA0', '#748BE9', '#D2F9FE', '#4145A5', '#789AFA', '#706CF4', '#EF987F', '#775DD5', '#FCEECF', '#DA7FBC'],
-                    cssVar: {
-                        '--main-color': '#ffffff',
-                        '--main-bgcolor': '#4c4f69',
-                        '--color': '#cccccc',
-                        '--bgcolor': '#252526',
-                        '--panel-color': '#ffffff',
-                        '--panel-bgcolor': '#2d3748',
-                        '--panel-border-color': '#696969',
-                        'font-size': '10px',
-                    },
-                },
+                theme: themeManager.getTheme(LIGHT_THEME.name),
                 direction: 2
             };
 
@@ -194,7 +259,6 @@ namespace CodeMindMap
                 id: 'child_' + Date.now(),
                 topic: topic,
                 children: [],
-                style: { color: '#FFFFFF' }, 
                 data: codeInfo, 
                 tags: [codeInfo.fileName]
             };
@@ -225,22 +289,78 @@ namespace CodeMindMap
                 return { success: false, error: e.message };
             }
         };
+
+        function getThemeName(mindElixirData) {
+            try {
+                // First, check if the input is valid
+                if (!mindElixirData || typeof mindElixirData !== 'object') {
+                    return '';
+                }
+        
+                // Safely navigate through the nested structure
+                const theme = mindElixirData.theme || 
+                             (mindElixirData.nodeData && mindElixirData.nodeData.theme);
+        
+                // Check if theme exists and has a name property
+                if (theme && typeof theme === 'object' && theme.name) {
+                    return String(theme.name);
+                }
+        
+                return '';
+            } catch (error) {
+                // Catch any unexpected errors and return empty string
+                return '';
+            }
+        }
         
         window.importData = function(mindDataString = '') {
             if (!mind) return { success: false, error: ""Mind map not initialized"" };
             if (mindDataString == '') return { success: false, error: ""No mind map data"" };
             
             try {
+
                 if (mindDataString.startsWith('""') && mindDataString.endsWith('""')) {
                     mindDataString = mindDataString.substring(1, mindDataString.length - 1);
                 }
+
                 const mindData = JSON.parse(mindDataString);
+
                 mind.refresh(mindData);
+
+                const dataThemeName = getThemeName(mindData);
+
+                if (dataThemeName != '' && themeManager.contains(dataThemeName) && dataThemeName != mind.theme?.name) {
+                    mind.changeTheme(themeManager.getTheme(dataThemeName));
+                }
+                
                 return { success: true, error: """" };
             } catch (e) {
                 console.error(""Error importing data:"", e);
                 return { success: false, error: e.message };
             }
+        };
+
+        window.toggleColorScheme = function() {
+
+            if (!mind) return { success: false, error: ""Mind map not initialized"" };
+
+            try {
+                const availableThemeKeys = themeManager.getAvailableThemes();
+                const currentThemeName = mind.theme?.name;
+                const themeKeyToApply = availableThemeKeys.find(key => 
+                    themeManager.getTheme(key)?.name !== currentThemeName
+                );
+                if (themeKeyToApply) {
+                    const themeToApply = themeManager.getTheme(themeKeyToApply);
+                    mind.changeTheme(themeToApply);
+                    return { success: true, error: '' };
+                }
+                return { success: false, error: 'No alternative theme found' };
+            } catch (e) {
+                console.error(""Error toggling the color scheme:"", e);
+                return { success: false, error: e.message };
+            }
+
         };
 
         document.addEventListener('DOMContentLoaded', initMindMap);

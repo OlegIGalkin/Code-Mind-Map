@@ -14,7 +14,6 @@ using Newtonsoft.Json;
 using System.Linq;
 using CodeMindMap.MindMap;
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.Telemetry;
 
 namespace CodeMindMap
 {
@@ -322,6 +321,11 @@ namespace CodeMindMap
 
             Debug.WriteLine("Mind Map Operation Name: " + mindMapOperation.OperationName);
 
+            await AutoSaveMindMapData();
+        }
+
+        private async Task AutoSaveMindMapData()
+        {
             var autoSaveFilePath = MindMapPackage?.CurrentSolutionMindMapData.MindMapDataFilePath;
             if (string.IsNullOrEmpty(autoSaveFilePath))
             {
@@ -466,7 +470,7 @@ namespace CodeMindMap
             {
                 try
                 {
-                    doc = dte.ItemOperations.OpenFile(filePath, Constants.vsViewKindTextView).Document;
+                    doc = dte.ItemOperations.OpenFile(filePath, EnvDTE.Constants.vsViewKindTextView).Document;
                 }
                 catch (Exception exception)
                 {
@@ -578,7 +582,7 @@ namespace CodeMindMap
                 var dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
 
                 // Open file and get window reference
-                EnvDTE.Window window = dte.ItemOperations.OpenFile(filePath, Constants.vsViewKindTextView);
+                EnvDTE.Window window = dte.ItemOperations.OpenFile(filePath, EnvDTE.Constants.vsViewKindTextView);
 
                 // Verify the window/document opened successfully
                 if (window?.Document == null)
@@ -773,6 +777,23 @@ namespace CodeMindMap
         private void GotoCodeClick(object sender, RoutedEventArgs eventArgs)
         {
             NavigateToNodeCode(NodeSelectedAction);
+        }
+
+        private async void ToggleColorSchemeClick(object sender, RoutedEventArgs eventArgs)
+        {
+            try
+            {
+                var result = await MindMapBrowser.ExecuteScriptAsync("toggleColorScheme();");
+
+                Debug.WriteLine($"toggleColorScheme() result: {result}");
+            }
+            catch (Exception exception)
+            {
+                Debug.WriteLine($"Executing toggleColorScheme script failed: {exception.Message}");
+                return;
+            }
+
+            await AutoSaveMindMapData();
         }
     }
 }
