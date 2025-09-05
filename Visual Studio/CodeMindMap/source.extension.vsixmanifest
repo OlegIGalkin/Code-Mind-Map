@@ -5,7 +5,7 @@
         <DisplayName>Code Mind Map</DisplayName>
         <Description xml:space="preserve">A mind mapping extension with nodes linked to code.</Description>
         <MoreInfo>https://codemindmap.com</MoreInfo>
-        <License>license_generic.txt</License>
+        <License>license_EPL20.txt</License>
         <GettingStartedGuide>CodeMindMap_Quick_Start.html</GettingStartedGuide>
         <Icon>hand_learning_map_mind_notebook_icon.ico</Icon>
         <PreviewImage>preview_image_200x200.png</PreviewImage>
