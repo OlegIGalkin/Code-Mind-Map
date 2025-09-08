@@ -76,6 +76,7 @@
     <Compile Include="MindMap\NodeData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CodeMindMapPackage.cs" />
+    <Compile Include="RelativePathHelper.cs" />
     <Compile Include="SelectedText.cs" />
     <Compile Include="SolutionMindMapData.cs" />
     <Compile Include="CodeMindMapHtml.cs" />

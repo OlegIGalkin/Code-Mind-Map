@@ -184,7 +184,17 @@ namespace CodeMindMap
                 return;
             }
 
-            var nodeData = new { fileName = Path.GetFileName(selectedCode.DocumentPath), filePath = selectedCode.DocumentPath, topLine = selectedCode.TopLine };
+            var documentFilePath = selectedCode.DocumentPath;
+            var documentFileName = Path.GetFileName(documentFilePath);
+
+            var slnFilePath = MindMapPackage?.CurrentSolutionMindMapData.SolutionFilePath;
+
+            if (!string.IsNullOrEmpty(slnFilePath) && RelativePathHelper.IsFileInSolution(slnFilePath, documentFilePath))
+            {
+                documentFilePath = RelativePathHelper.GetRelativePathFromSolution(slnFilePath, documentFilePath);
+            }
+
+            var nodeData = new { fileName = documentFileName, filePath = documentFilePath, topLine = selectedCode.TopLine };
 
             string nodeDataObject = JsonConvert.SerializeObject(nodeData);
 
@@ -420,7 +430,15 @@ namespace CodeMindMap
                 return;
             }
 
-            var filePath = mindMapAction.NodeData.FilePath;
+            var slnFilePath = MindMapPackage?.CurrentSolutionMindMapData.SolutionFilePath;
+
+            var filePath = RelativePathHelper.GetFullFilePath(slnFilePath, mindMapAction.NodeData.FilePath);
+
+            if (string.IsNullOrEmpty(filePath))
+            {
+                return;
+            }
+
             var lineNumber = mindMapAction.NodeData.TopLine;
 
             if (lineNumber == 0)
