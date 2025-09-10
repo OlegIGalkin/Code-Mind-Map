@@ -2,7 +2,7 @@
   "name": "code-mind-map",
   "displayName": "Code Mind Map",
   "description": "A mind mapping extension with nodes linked to code.",
-  "version": "1.13.0",
+  "version": "1.14.0",
   "publisher": "Kentich",
   "homepage": "https://codemindmap.com/",
   "repository": {
@@ -39,9 +39,9 @@
     "onCommand:codeMindMap.addCodeToNode"
   ],
   "main": "./out/extension.js",
+  "sideEffects": false,
   "files": [
-    "out",
-    "src/media"
+    "out"
   ],
   "contributes": {
     "commands": [
@@ -75,12 +75,14 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
+    "compile": "webpack --mode production",
+    "compile:dev": "webpack --mode development",
+    "watch": "webpack --mode development --watch",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
-    "package": "npm run compile && vsce package"
+    "package": "npm run compile && vsce package",
+    "analyze": "webpack --mode production --analyze"
   },
   "devDependencies": {
     "@types/vscode": "^1.85.0",
@@ -93,6 +95,10 @@
     "glob": "^10.3.10",
     "mocha": "^10.2.0",
     "typescript": "^5.3.3",
-    "@vscode/test-electron": "^2.3.8"
+    "@vscode/test-electron": "^2.3.8",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4",
+    "ts-loader": "^9.5.1",
+    "terser-webpack-plugin": "^5.3.9"
   }
 }

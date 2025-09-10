@@ -6,7 +6,7 @@ function getWorkspaceRootForFile(fileFsPath: string): string | undefined {
 	const wsFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(fileFsPath));
 	if (wsFolder) return wsFolder.uri.fsPath;
 	const folders = vscode.workspace.workspaceFolders;
-	return folders && folders.length > 0 ? folders[0].uri.fsPath : undefined;
+	return folders && folders.length > 0 ? folders[0]?.uri.fsPath : undefined;
 }
 
 function toWorkspaceRelative(absPath: string): string {
@@ -184,7 +184,7 @@ export class CodeMindMapPanel {
         // Track selection changes in any editor
         vscode.window.onDidChangeTextEditorSelection(e => {
             const selection = e.selections[0];
-            if (!selection.isEmpty) {
+            if (selection && !selection.isEmpty) {
                 const text = e.textEditor.document.getText(selection);
                 this._lastSelection = {
                     text,

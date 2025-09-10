@@ -4,13 +4,30 @@
     "target": "es2020",
     "outDir": "out",
     "lib": ["es2020"],
-    "sourceMap": true,
+    "sourceMap": false,
     "rootDir": "src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["node", "vscode"]
+    "types": ["node", "vscode"],
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "removeComments": true,
+    "declaration": false,
+    "declarationMap": false,
+    "importHelpers": false,
+    "isolatedModules": true,
+    "preserveConstEnums": true,
+    "stripInternal": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", ".vscode-test"]
+  "exclude": ["node_modules", ".vscode-test", "out"],
+  "ts-node": {
+    "esm": false
+  }
 } 
