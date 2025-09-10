@@ -1,9 +1,40 @@
-import { Console } from 'console';
 import * as vscode from 'vscode';
+import * as path from 'path';
 
-// Track the last time Ctrl+2 was pressed
-let lastCtrl2Press: number = 0;
-const DOUBLE_PRESS_TIMEOUT = 500; // milliseconds
+// Utilities for path handling
+function getWorkspaceRootForFile(fileFsPath: string): string | undefined {
+	const wsFolder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(fileFsPath));
+	if (wsFolder) return wsFolder.uri.fsPath;
+	const folders = vscode.workspace.workspaceFolders;
+	return folders && folders.length > 0 ? folders[0].uri.fsPath : undefined;
+}
+
+function toWorkspaceRelative(absPath: string): string {
+	const root = getWorkspaceRootForFile(absPath);
+	if (!root) return absPath; // fallback to absolute if no workspace
+	const rel = path.relative(root, absPath);
+	// If outside workspace, keep absolute
+	return isPathRelative(rel) ? rel : absPath;
+}
+
+function toAbsoluteFromWorkspace(filePath: string, contextPath?: string): string {
+	let relPath = filePath;
+    if (path.isAbsolute(filePath)) {
+        const rel = toWorkspaceRelative(filePath);
+        if (isPathRelative(rel)) {
+            relPath = rel;
+        }
+        else {
+            return filePath
+        }
+    }
+	const base = contextPath ? getWorkspaceRootForFile(contextPath) : (vscode.workspace.workspaceFolders?.[0]?.uri.fsPath);
+	return base ? path.join(base, relPath) : relPath;
+}
+
+function isPathRelative(rel: string) {
+    return rel && !rel.startsWith('..') && !path.isAbsolute(rel);
+}
 
 export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(
@@ -31,11 +62,11 @@ export function activate(context: vscode.ExtensionContext) {
             const codeToAdd = text || lineText;
 
             // Create node data with file information
-            const nodeData = {
-                fileName: editor.document.fileName.split(/[\/\\]/).pop() || 'untitled',
-                filePath: editor.document.fileName,
-                topLine: selection.active.line + 1
-            };
+			const nodeData = {
+				fileName: editor.document.fileName.split(/[\/\\]/).pop() || 'untitled',
+				filePath: toWorkspaceRelative(editor.document.fileName),
+				topLine: selection.active.line + 1
+			};
 
             // If the panel is not open, show it first
             if (!CodeMindMapPanel.CurrentPanel) {
@@ -220,10 +251,10 @@ export class CodeMindMapPanel {
                         if (this._lastSelection) {
                             // Use the last selected text
                             const nodeData = {
-                                fileName: this._lastSelection.document.fileName.split(/[\/\\]/).pop(),
-                                filePath: this._lastSelection.document.fileName,
-                                topLine: this._lastSelection.line + 1
-                            };
+								fileName: this._lastSelection.document.fileName.split(/[\/\\]/).pop(),
+								filePath: toWorkspaceRelative(this._lastSelection.document.fileName),
+								topLine: this._lastSelection.line + 1
+							};
 
                             this._panel.webview.postMessage({
                                 action: 'addChildNode',
@@ -247,10 +278,10 @@ export class CodeMindMapPanel {
                             const codeToAdd = text || lineText;
 
                             const nodeData = {
-                                fileName: editor.document.fileName.split(/[\/\\]/).pop() || 'untitled',
-                                filePath: editor.document.fileName,
-                                topLine: selection.active.line + 1
-                            };
+								fileName: editor.document.fileName.split(/[\/\\]/).pop() || 'untitled',
+								filePath: toWorkspaceRelative(editor.document.fileName),
+								topLine: selection.active.line + 1
+							};
 
                             this._panel.webview.postMessage({
                                 action: 'addChildNode',
@@ -262,17 +293,7 @@ export class CodeMindMapPanel {
 
                     case 'goToCode':
                         if (this._lastSelectedNode?.data) {
-                            const { filePath, topLine } = this._lastSelectedNode.data;
-                            const document = await vscode.workspace.openTextDocument(filePath);
-                            const editor = await vscode.window.showTextDocument(document);
-                            const line = document.lineAt(topLine - 1);
-                            const firstNonWhitespace = line.firstNonWhitespaceCharacterIndex;
-                            const position = new vscode.Position(topLine - 1, firstNonWhitespace);
-                            editor.selection = new vscode.Selection(position, position);
-                            editor.revealRange(
-                                new vscode.Range(position, position),
-                                vscode.TextEditorRevealType.InCenter
-                            );
+                            await this.navigateToCode(this._lastSelectedNode.data);
                         }
                         break;
 
@@ -345,17 +366,7 @@ export class CodeMindMapPanel {
 
                     case 'nodeNavigate':
                         if (message.nodeData) {
-                            const { filePath, topLine } = message.nodeData;
-                            const document = await vscode.workspace.openTextDocument(filePath);
-                            const editor = await vscode.window.showTextDocument(document);
-                            const line = document.lineAt(topLine - 1);
-                            const firstNonWhitespace = line.firstNonWhitespaceCharacterIndex;
-                            const position = new vscode.Position(topLine - 1, firstNonWhitespace);
-                            editor.selection = new vscode.Selection(position, position);
-                            editor.revealRange(
-                                new vscode.Range(position, position),
-                                vscode.TextEditorRevealType.InCenter
-                            );
+                            await this.navigateToCode(message.nodeData);
                         }
                         break;
 
@@ -412,6 +423,21 @@ export class CodeMindMapPanel {
             await config.update('autoSavePath', CodeMindMapPanel._lastSavePath.fsPath, vscode.ConfigurationTarget.Workspace);
         }
     }
+
+    private async navigateToCode(nodeData: { filePath: string; topLine: number }) {
+		const { filePath, topLine } = nodeData;
+		const absPath = toAbsoluteFromWorkspace(filePath, this._lastSelection?.document.fileName);
+		const document = await vscode.workspace.openTextDocument(absPath);
+		const editor = await vscode.window.showTextDocument(document);
+		const line = document.lineAt(topLine - 1);
+		const firstNonWhitespace = line.firstNonWhitespaceCharacterIndex;
+		const position = new vscode.Position(topLine - 1, firstNonWhitespace);
+		editor.selection = new vscode.Selection(position, position);
+		editor.revealRange(
+			new vscode.Range(position, position),
+			vscode.TextEditorRevealType.InCenter
+		);
+	}
 
     public dispose() {
         CodeMindMapPanel.CurrentPanel = undefined;
@@ -695,7 +721,7 @@ export class CodeMindMapPanel {
                     ],
                     expanded: true,
                 },
-                theme: themeManager.getTheme(LIGHT_THEME.name),
+                theme: themeManager.getTheme(DARK_THEME.name),
                 direction: 2
             };
 
