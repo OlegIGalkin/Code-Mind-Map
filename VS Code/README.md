@@ -26,6 +26,10 @@ See screenshots at [CodeMindMap.com](https://codemindmap.com/)
 
 ## Versions
 
+- **v1.14**
+  - Storing relative paths in mind maps.
+  - Storing a relative path to the auto-save file in the workspace settings.
+
 - **v1.13**
   - "Toggle color scheme: Light/Dark" button added.
   - Light color scheme is default.
