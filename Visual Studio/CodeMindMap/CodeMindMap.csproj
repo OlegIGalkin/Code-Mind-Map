@@ -106,12 +106,12 @@
     <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.14.40265" ExcludeAssets="runtime">
       <IncludeAssets>compile; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.14.2094">
+    <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.14.2101">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Web.WebView2">
-      <Version>1.0.3240.44</Version>
+      <Version>1.0.3485.44</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
     <Metadata>
-        <Identity Id="CodeMindMap.c3a3dcb5-eb40-460e-a469-9980992fc359" Version="1.13" Language="en-US" Publisher="Oleg Galkin" />
+        <Identity Id="CodeMindMap.c3a3dcb5-eb40-460e-a469-9980992fc359" Version="1.14" Language="en-US" Publisher="Oleg Galkin" />
         <DisplayName>Code Mind Map</DisplayName>
         <Description xml:space="preserve">A mind mapping extension with nodes linked to code.</Description>
         <MoreInfo>https://codemindmap.com</MoreInfo>
