@@ -2,7 +2,7 @@
   "name": "code-mind-map",
   "displayName": "Code Mind Map",
   "description": "A mind mapping extension with nodes linked to code.",
-  "version": "1.14.0",
+  "version": "1.14.1",
   "publisher": "Kentich",
   "homepage": "https://codemindmap.com/",
   "repository": {
@@ -39,7 +39,6 @@
     "onCommand:codeMindMap.addCodeToNode"
   ],
   "main": "./out/extension.js",
-  "sideEffects": false,
   "files": [
     "out"
   ],
@@ -74,31 +73,31 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "webpack --mode production",
-    "compile:dev": "webpack --mode development",
-    "watch": "webpack --mode development --watch",
-    "pretest": "npm run compile && npm run lint",
+    "vscode:prepublish": "npm run bundle",
+    "compile": "tsc -p ./",
+    "bundle": "webpack --mode production",
+    "bundle-dev": "webpack --config webpack.dev.config.js",
+    "watch": "webpack --config webpack.dev.config.js --watch",
+    "pretest": "npm run bundle && npm run lint",
     "lint": "eslint src --ext ts",
     "test": "node ./out/test/runTest.js",
-    "package": "npm run compile && vsce package",
-    "analyze": "webpack --mode production --analyze"
+    "package": "npm run bundle && vsce package"
   },
   "devDependencies": {
-    "@types/vscode": "^1.85.0",
     "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.6",
     "@types/node": "20.x",
+    "@types/vscode": "^1.85.0",
+    "@types/webpack-env": "^1.18.8",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
+    "@vscode/test-electron": "^2.3.8",
     "eslint": "^8.56.0",
     "glob": "^10.3.10",
     "mocha": "^10.2.0",
+    "ts-loader": "^9.5.4",
     "typescript": "^5.3.3",
-    "@vscode/test-electron": "^2.3.8",
-    "webpack": "^5.89.0",
-    "webpack-cli": "^5.1.4",
-    "ts-loader": "^9.5.1",
-    "terser-webpack-plugin": "^5.3.9"
+    "webpack": "^5.101.3",
+    "webpack-cli": "^6.0.1"
   }
 }

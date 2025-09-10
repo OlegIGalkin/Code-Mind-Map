@@ -135,8 +135,9 @@ export class CodeMindMapPanel {
 
         // Try to load last save path from workspace settings
         const config = vscode.workspace.getConfiguration('codeMindMap');
-        const lastSavePath = config.get<string>('autoSavePath');
+        let lastSavePath = config.get<string>('autoSavePath');
         if (lastSavePath) {
+            lastSavePath = toAbsoluteFromWorkspace(lastSavePath);
             CodeMindMapPanel._lastSavePath = vscode.Uri.file(lastSavePath);
             // Load the mind map from the file
             vscode.workspace.fs.readFile(CodeMindMapPanel._lastSavePath).then(
@@ -420,7 +421,9 @@ export class CodeMindMapPanel {
         const workspaceFolders = vscode.workspace.workspaceFolders;
         if (workspaceFolders && workspaceFolders.length > 0) {
             const config = vscode.workspace.getConfiguration('codeMindMap');
-            await config.update('autoSavePath', CodeMindMapPanel._lastSavePath.fsPath, vscode.ConfigurationTarget.Workspace);
+            var relativePath = toWorkspaceRelative(CodeMindMapPanel._lastSavePath.fsPath);
+            console.debug('Saving to workspace settings: ' + relativePath);
+            await config.update('autoSavePath', relativePath, vscode.ConfigurationTarget.Workspace);
         }
     }
 

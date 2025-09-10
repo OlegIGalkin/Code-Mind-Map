@@ -1,46 +1,37 @@
 # Source files
-src
-.vscode
-.vscode-test
+src/**
+!src/extension.ts
 
 # Build artifacts
-out/test
-*.map
+out/test/**
+*.tsbuildinfo
 
 # Development files
+.vscode/**
+.vscode-test/**
 .gitignore
 tsconfig.json
+webpack.config.js
+webpack.dev.config.js
+
+# Documentation
 README.md
-package-lock.json
-node_modules
-
-# VS Code specific
-.vscode-test
-.vscode-test/**
-.vscode-test/**/*
-
-# Documentation and assets not needed in extension
 *.md
-*.png
-!icon.png
-*.jpg
-*.jpeg
-*.gif
-*.svg
-*.ico
 
-# Development dependencies
-.eslintrc.json
-.eslintignore
-.gitattributes
+# Package files
+*.vsix
+package-lock.json
 
-# OS generated files
+# Node modules (should not be included anyway)
+node_modules/**
+
+# IDE files
+*.swp
+*.swo
+*~
+
+# OS files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 
 # Logs
@@ -49,54 +40,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
+# Coverage
+coverage/**
 
-# Coverage directory used by tools like istanbul
-coverage
-
-# nyc test coverage
-.nyc_output
-
-# Dependency directories
-jspm_packages/
-
-# Optional npm cache directory
-.npm
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# dotenv environment variables file
-.env
-
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
-
-# next.js build output
-.next
-
-# nuxt.js build output
-.nuxt
-
-# vuepress build output
-.vuepress/dist
-
-# Serverless directories
-.serverless
-
-# FuseBox cache
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/ 
+# Temporary files
+*.tmp
+*.temp 
