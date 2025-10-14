@@ -12,7 +12,7 @@ namespace CodeMindMap
         public const string DefaultFileName = "CodeMindMap.html";
         public const string TempDirName = "CodeMindMap_Temp";
 
-        private static readonly string DefaultHtmlContent =
+        public static readonly string DefaultHtmlContent =
             @"<!DOCTYPE html>
 <html lang=""en"">
 <head>
@@ -34,7 +34,7 @@ namespace CodeMindMap
     <div id=""map""></div>
 
     <script type=""module"">
-        import MindElixir from ""https://cdn.jsdelivr.net/npm/mind-elixir@^4.0.0/dist/MindElixir.js"";
+        import MindElixir from ""https://codemindmap.vsext/MindElixir.js"";
 
         let mind, themeManager;
 
@@ -42,7 +42,7 @@ namespace CodeMindMap
             const options = {
                 el: '#map',
                 allowUndo: true,
-                toolBar: false,
+                toolBar: true,
                 view: {
                     beforeSelect(el, node) {
                         mind.currentNode = node;
@@ -388,18 +388,54 @@ namespace CodeMindMap
             DirectoryPath = Path.Combine(_vsTempPath, DirectoryName);
             FilePath = Path.Combine(DirectoryPath, DefaultFileName);
 
+            CreateMindMapFile(DirectoryPath, FilePath);
+            CopyMindElixir(DirectoryPath);
+        }
+
+        private static void CreateMindMapFile(string directoryPath, string filePath)
+        {
             try
             {
-                if (!Directory.Exists(DirectoryPath))
+                if (!Directory.Exists(directoryPath))
                 {
-                    Directory.CreateDirectory(DirectoryPath);
+                    Directory.CreateDirectory(directoryPath);
                 }
 
-                File.WriteAllText(FilePath, DefaultHtmlContent);
+                File.WriteAllText(filePath, DefaultHtmlContent);
             }
             catch (Exception exception)
             {
                 Debug.WriteLine($"Error creating a mind map file: {exception.Message}");
+            }
+        }
+
+        private static void CopyMindElixir(string directoryPath)
+        {
+            try
+            {
+                if (!Directory.Exists(directoryPath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                }
+
+                string extensionAssemblyLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                string extensionDirectory = Path.GetDirectoryName(extensionAssemblyLocation);
+
+                string mindElixirDir = Path.Combine(extensionDirectory, "MindElixir");
+
+                string[] files = Directory.GetFiles(mindElixirDir);
+
+                foreach (string file in files)
+                {
+                    string fileName = Path.GetFileName(file);
+                    string destFile = Path.Combine(directoryPath, fileName);
+
+                    File.Copy(file, destFile, true);
+                }
+            }
+            catch (Exception exception)
+            {
+                Debug.WriteLine($"Error copying mind elixir files: {exception.Message}");
             }
         }
 

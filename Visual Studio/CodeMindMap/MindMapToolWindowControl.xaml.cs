@@ -26,9 +26,10 @@ namespace CodeMindMap
             InitializeComponent();
         }
 
+        private const string VirtualHostName = "codemindmap.vsext";
         private readonly MindMapToolWindow _toolWindow;
 
-        private CodeMindMapPackage MindMapPackage { get { return _toolWindow.Package as CodeMindMapPackage; } }
+        private CodeMindMapPackage MindMapPackage => _toolWindow.Package as CodeMindMapPackage;
 
         private bool _loaded = false;
 
@@ -86,7 +87,7 @@ namespace CodeMindMap
                 // Initialize the WebView2 control 
                 await MindMapBrowser.EnsureCoreWebView2Async(environment);
 
-                MindMapBrowser.CoreWebView2.SetVirtualHostNameToFolderMapping("codemindmap.vsext", MindMapPackage?.MindMapHtmlFile.DirectoryPath, CoreWebView2HostResourceAccessKind.Allow);
+                MindMapBrowser.CoreWebView2.SetVirtualHostNameToFolderMapping(VirtualHostName, MindMapPackage?.MindMapHtmlFile.DirectoryPath, CoreWebView2HostResourceAccessKind.Allow);
             }
             catch (Exception exception)
             {
@@ -115,7 +116,7 @@ namespace CodeMindMap
 
             MindMapBrowser.CoreWebView2.Settings.IsWebMessageEnabled = true;
 
-            MindMapBrowser.CoreWebView2.Navigate("https://codemindmap.vsext/" + CodeMindMapHtml.DefaultFileName);
+            MindMapBrowser.CoreWebView2.NavigateToString(CodeMindMapHtml.DefaultHtmlContent);
         }
 
         private async void MindMapBrowser_NavigationCompleted(object sender, CoreWebView2NavigationCompletedEventArgs eventArgs)
@@ -623,6 +624,16 @@ namespace CodeMindMap
             }
         }
 
+        private string InitialFileDialogDir
+        {
+            get
+            {
+                var slnFilePath = MindMapPackage?.CurrentSolutionMindMapData.SolutionFilePath;
+
+                return string.IsNullOrEmpty(slnFilePath) ? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) : Path.GetDirectoryName(slnFilePath);
+            }
+        }
+
         private async void SaveDataClick(object sender, RoutedEventArgs eventArgs)
         {
             Microsoft.Win32.SaveFileDialog dialog = new Microsoft.Win32.SaveFileDialog
@@ -630,7 +641,7 @@ namespace CodeMindMap
                 FileName = SolutionMindMapData.DefaultDataFileName,
                 DefaultExt = ".txt",
                 Filter = "Text documents (.txt)|*.txt",
-                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                InitialDirectory = InitialFileDialogDir,
                 Title = SaveDataButton.ToolTip.ToString()
             };
 
@@ -716,7 +727,7 @@ namespace CodeMindMap
                 FileName = SolutionMindMapData.DefaultDataFileName,
                 DefaultExt = ".txt",
                 Filter = "Text documents (.txt)|*.txt",
-                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                InitialDirectory = InitialFileDialogDir,
                 Title = LoadDataButton.ToolTip.ToString()
             };
 
