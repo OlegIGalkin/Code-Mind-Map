@@ -31,3 +31,6 @@ The extension maintains full debugging capabilities:
 - **Better Performance**: Single bundled file loads faster
 - **Maintained Debugging**: Source maps preserve debugging capabilities
 - **VS Code Compliance**: Follows VS Code extension bundling best practices
+
+
+

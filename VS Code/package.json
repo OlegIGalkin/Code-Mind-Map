@@ -2,7 +2,7 @@
   "name": "code-mind-map",
   "displayName": "Code Mind Map",
   "description": "A mind mapping extension with nodes linked to code.",
-  "version": "1.14.1",
+  "version": "1.15.1",
   "publisher": "Kentich",
   "homepage": "https://codemindmap.com/",
   "repository": {
@@ -40,7 +40,8 @@
   ],
   "main": "./out/extension.js",
   "files": [
-    "out"
+    "out",
+    "MindElixir"
   ],
   "contributes": {
     "commands": [
@@ -92,6 +93,7 @@
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
     "@vscode/test-electron": "^2.3.8",
+    "copy-webpack-plugin": "^13.0.1",
     "eslint": "^8.56.0",
     "glob": "^10.3.10",
     "mocha": "^10.2.0",

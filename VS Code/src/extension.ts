@@ -126,7 +126,7 @@ export class CodeMindMapPanel {
                 enableScripts: true,
                 retainContextWhenHidden: true,
                 localResourceRoots: [
-                    vscode.Uri.joinPath(extensionUri, 'src', 'media')
+                    vscode.Uri.joinPath(extensionUri, 'out', 'MindElixir')
                 ]
             }
         );
@@ -454,6 +454,10 @@ export class CodeMindMapPanel {
     }
 
     private _getHtmlForWebview(webview: vscode.Webview, extensionUri: vscode.Uri): string {
+        // Get URI for local MindElixir library
+        const mindElixirFileUri = vscode.Uri.joinPath(extensionUri, 'out', 'MindElixir', 'MindElixir.js');
+        const mindElixirUri = webview.asWebviewUri(mindElixirFileUri);
+
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -556,7 +560,7 @@ export class CodeMindMapPanel {
     </div>
 
     <script type="module">
-        import MindElixir from 'https://cdn.jsdelivr.net/npm/mind-elixir@^4.0.0/dist/MindElixir.js';
+        import MindElixir from '${mindElixirUri}';
         const vscode = acquireVsCodeApi();
 
         let mind, data, themeManager;
@@ -565,7 +569,7 @@ export class CodeMindMapPanel {
             const options = {
                 el: '#map',
                 allowUndo: true,
-                toolBar: false,
+                toolBar: true,
                 view: {
                     beforeSelect(el, node) {
                         mind.currentNode = node;

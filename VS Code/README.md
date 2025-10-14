@@ -26,6 +26,10 @@ See screenshots at [CodeMindMap.com](https://codemindmap.com/)
 
 ## Versions
 
+- **v1.15**
+  - Added a toolbar with buttons: Zoom In/Out, To Center, Tree View: Left, Right, Side.
+  - Now works offline.
+  
 - **v1.14**
   - Storing relative paths in mind maps.
   - Storing a relative path to the auto-save file in the workspace settings.

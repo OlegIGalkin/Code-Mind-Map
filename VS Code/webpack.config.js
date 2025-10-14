@@ -1,4 +1,5 @@
 const path = require('path');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
     mode: 'production',
@@ -32,5 +33,15 @@ module.exports = {
     devtool: 'source-map',
     optimization: {
         minimize: false // Keep readable for debugging
-    }
+    },
+    plugins: [
+        new CopyWebpackPlugin({
+            patterns: [
+                {
+                    from: 'MindElixir/MindElixir.js',
+                    to: 'MindElixir/MindElixir.js'
+                }
+            ]
+        })
+    ]
 };
