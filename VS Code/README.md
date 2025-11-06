@@ -26,6 +26,10 @@ See screenshots at [CodeMindMap.com](https://codemindmap.com/)
 
 ## Versions
 
+- **v1.16**
+  - The Ctrl+Scroll keyboard shortcut has been replaced with Alt+Scroll for zooming in/out to avoid conflicts with the web browser's zoom feature.
+  - Fixed CTRL+Click opens new tab instead of using open one.
+
 - **v1.15**
   - Added a toolbar with buttons: Zoom In/Out, To Center, Tree View: Left, Right, Side.
   - Now works offline.
