@@ -158,8 +158,12 @@ namespace CodeMindMap
                             expanded: true,
                             children: [
                                 {
-                                    topic: 'Ctrl+Mouse Wheel Up/Down - Zoom in/out',
+                                    topic: 'Alt+Mouse Scroll - Zoom in/out',
                                     id: 'bd1c1cb51e6745d3',
+                                },
+                                {
+                                    topic: 'Shift+Mouse Scroll - Scroll horizontally',
+                                    id: '16710cea5cfb50712c8832676b87d2cc',
                                 },
                                 {
                                     topic: 'Right Click+Drag - Move the mind map',
@@ -240,6 +244,23 @@ namespace CodeMindMap
                     e.preventDefault();
                 }
             });
+
+            document.addEventListener('wheel', function(e) {
+                if (e.altKey) {
+                    e.preventDefault();
+                    const delta = e.deltaY;
+                    if (delta > 0) {
+                            // Handle scroll down
+                            if (mind.scaleVal < 0.6) return
+                            mind.scale((mind.scaleVal -= 0.2))
+                        } else if (delta < 0) {
+                            // Handle scroll up
+                            if (mind.scaleVal > 1.6) return
+                            mind.scale((mind.scaleVal += 0.2))
+                        }
+                }
+            }, { passive: false });        
+
         }
 
         window.addChildNode = function(topic = 'New Child Node', codeInfoObject) {
