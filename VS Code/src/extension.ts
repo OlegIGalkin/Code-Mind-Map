@@ -431,7 +431,33 @@ export class CodeMindMapPanel {
 		const { filePath, topLine } = nodeData;
 		const absPath = toAbsoluteFromWorkspace(filePath, this._lastSelection?.document.fileName);
 		const document = await vscode.workspace.openTextDocument(absPath);
-		const editor = await vscode.window.showTextDocument(document);
+		// Find if the document is already open in any tab across all groups (columns)
+		const targetFsPath = document.uri.fsPath;
+		let matchedViewColumn: vscode.ViewColumn | undefined = undefined;
+		for (const group of vscode.window.tabGroups.all) {
+			for (const tab of group.tabs) {
+				const input: any = tab.input as any;
+				const candidateUris: vscode.Uri[] = [];
+				if (input?.uri) {
+					candidateUris.push(input.uri as vscode.Uri);
+				}
+				if (input?.original) {
+					candidateUris.push(input.original as vscode.Uri);
+				}
+				if (input?.modified) {
+					candidateUris.push(input.modified as vscode.Uri);
+				}
+				if (candidateUris.some(u => u.fsPath === targetFsPath)) {
+					matchedViewColumn = group.viewColumn;
+					break;
+				}
+			}
+			if (matchedViewColumn) {
+				break;
+			}
+		}
+		const showOptions = matchedViewColumn ? { viewColumn: matchedViewColumn, preserveFocus: false, preview: false } : undefined;
+		const editor = await vscode.window.showTextDocument(document, showOptions);
 		const line = document.lineAt(topLine - 1);
 		const firstNonWhitespace = line.firstNonWhitespaceCharacterIndex;
 		const position = new vscode.Position(topLine - 1, firstNonWhitespace);
