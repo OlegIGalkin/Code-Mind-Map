@@ -26,6 +26,9 @@ See screenshots at [CodeMindMap.com](https://codemindmap.com/)
 
 ## Versions
 
+- **v1.17**
+  - The MindElixir mind mapping engine has been updated from version 4.0.0 to version 4.6.2.
+
 - **v1.16**
   - The Ctrl+Scroll keyboard shortcut has been replaced with Alt+Scroll for zooming in/out to avoid conflicts with the web browser's zoom feature.
   - Fixed CTRL+Click opens new tab instead of using open one.
