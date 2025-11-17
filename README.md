@@ -32,3 +32,7 @@ A mind mapping extension with nodes linked to code.
 That's it! Start visualizing and navigating your code faster with **Code Mind Map**.
 
 > **Tip:** Use the toolbar buttons for quick actions like saving/loading maps.
+
+## Acknowledgments
+
+Thanks to [SSShooter](https://github.com/SSShooter) for the [MindElixir](https://github.com/ssshooter/mind-elixir-core) mind mapping engine used in this extension.
