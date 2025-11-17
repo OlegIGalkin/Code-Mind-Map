@@ -34,7 +34,7 @@ namespace CodeMindMap
     <div id=""map""></div>
 
     <script type=""module"">
-        import MindElixir from ""https://codemindmap.vsext/MindElixir.js"";
+        import MindElixir from ""http://codemindmap.vsext/MindElixir.js"";
 
         let mind, themeManager;
 
@@ -236,12 +236,15 @@ namespace CodeMindMap
                     if (targetNode) mind.expandNode(targetNode);
                 }
                 else if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
-                    const nodeText = mind.currentNode?.nodeObj?.topic
-                    if (!nodeText) return;
-                    navigator.clipboard.writeText(nodeText)
-                        .then(() => console.log('Node text copied to clipboard'))
-                        .catch(err => console.error('Failed to copy text: ', err));
-                    e.preventDefault();
+                    const currentNodeObj = mind.currentNode?.nodeObj
+                    if (currentNodeObj) {
+                        window.chrome.webview.postMessage({
+                            action: 'nodeCopy',
+                            nodeId: currentNodeObj.id,
+                            nodeTopic: currentNodeObj.topic,
+                            nodeData: currentNodeObj.data,
+                        });
+                    }
                 }
             });
 

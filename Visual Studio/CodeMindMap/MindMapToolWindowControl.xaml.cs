@@ -1,19 +1,19 @@
-﻿using System;
-using System.IO;
-using System.Windows;
-using System.Windows.Controls;
+﻿using CodeMindMap.MindMap;
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.Web.WebView2.Core;
-using TextSelection = EnvDTE.TextSelection;
-using Task = System.Threading.Tasks.Task;
-using System.Text;
-using System.Diagnostics;
 using Newtonsoft.Json;
+using System;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using CodeMindMap.MindMap;
+using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using Task = System.Threading.Tasks.Task;
+using TextSelection = EnvDTE.TextSelection;
 
 namespace CodeMindMap
 {
@@ -303,6 +303,8 @@ namespace CodeMindMap
             OnNodeSelected(messageJson);
 
             OnNodeNavigateMindMapAction(messageJson);
+
+            OnNodeCopy(messageJson);
         }
 
         private async Task OnMindMapOperationAsync(string messageJson)
@@ -352,18 +354,7 @@ namespace CodeMindMap
 
         private void OnNodeSelected(string messageJson)
         {
-            MindMapAction mindMapAction;
-
-            try
-            {
-                mindMapAction = JsonConvert.DeserializeObject<MindMapAction>(messageJson);
-            }
-            catch (Exception exception)
-            {
-                Debug.WriteLine($"MindMapAction parsing failed: {exception.Message}");
-
-                return;
-            }
+            MindMapAction mindMapAction = DeserializeMindMapAction(messageJson);
 
             if (mindMapAction == null)
             {
@@ -391,20 +382,23 @@ namespace CodeMindMap
 
         private MindMapAction _nodeSelectedAction;
 
-        private void OnNodeNavigateMindMapAction(string messageJson)
+        private MindMapAction DeserializeMindMapAction(string messageJson)
         {
-            MindMapAction mindMapAction;
-
             try
             {
-                mindMapAction = JsonConvert.DeserializeObject<MindMapAction>(messageJson);
+                return JsonConvert.DeserializeObject<MindMapAction>(messageJson);
             }
             catch (Exception exception)
             {
                 Debug.WriteLine($"MindMapAction parsing failed: {exception.Message}");
 
-                return;
+                return null;
             }
+        }
+
+        private void OnNodeNavigateMindMapAction(string messageJson)
+        {
+            MindMapAction mindMapAction = DeserializeMindMapAction(messageJson);
 
             if (mindMapAction == null)
             {
@@ -621,6 +615,30 @@ namespace CodeMindMap
             catch (Exception exception)
             {
                 Debug.WriteLine($"Navigation failed: {exception.Message}");
+            }
+        }
+
+        private void OnNodeCopy(string messageJson)
+        {
+            MindMapAction mindMapAction = DeserializeMindMapAction(messageJson);
+
+            if (mindMapAction == null)
+            {
+                return;
+            }
+
+            if (string.Compare(mindMapAction.Action, "nodeCopy", StringComparison.OrdinalIgnoreCase) != 0)
+            {
+                return;
+            }
+
+            try
+            {
+                Clipboard.SetText(mindMapAction.NodeTopic);
+            }
+            catch (Exception exception)
+            {
+                Debug.WriteLine($"Error copy to clipboard: {exception.Message}");
             }
         }
 
