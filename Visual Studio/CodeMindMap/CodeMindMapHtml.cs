@@ -158,11 +158,11 @@ namespace CodeMindMap
                             expanded: true,
                             children: [
                                 {
-                                    topic: 'Alt+Mouse Scroll - Zoom in/out',
+                                    topic: 'Alt+Scroll - Zoom in/out',
                                     id: 'bd1c1cb51e6745d3',
                                 },
                                 {
-                                    topic: 'Shift+Mouse Scroll - Scroll horizontally',
+                                    topic: 'Shift+Scroll - Scroll horizontally',
                                     id: '16710cea5cfb50712c8832676b87d2cc',
                                 },
                                 {
