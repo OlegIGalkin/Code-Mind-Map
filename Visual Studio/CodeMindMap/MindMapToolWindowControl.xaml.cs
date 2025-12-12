@@ -269,12 +269,18 @@ namespace CodeMindMap
 
         private void NewCodeMindMapClick(object sender, RoutedEventArgs eventArgs)
         {
-            var dialogResult = MessageBox.Show("Create a new code mind map? Your current progress will be lost.", "Create a new code mind map?", MessageBoxButton.OKCancel, MessageBoxImage.Exclamation);
+            var dialogResult = MessageBox.Show("Create a new code mind map?", "Code Mind Map", MessageBoxButton.OKCancel, MessageBoxImage.Exclamation);
 
-            if (dialogResult == MessageBoxResult.OK)
+            if (dialogResult != MessageBoxResult.OK)
             {
-                ReloadMindMapBrowser();
+                return;
             }
+
+            MindMapPackage?.SetEmptySolutionMindMapData();
+            MindMapPackage?.SetDefaultSolutionMindMapData();
+            MindMapPackage?.SaveSolutionMindMapDataToSettings();
+
+            ReloadMindMapBrowser();
         }
 
         public void ReloadMindMapBrowser()
@@ -683,6 +689,7 @@ namespace CodeMindMap
             if (saveResult)
             {
                 MindMapPackage?.SetMindMapDataFilePath(filePath);
+                MindMapPackage?.SaveSolutionMindMapDataToSettings();
             }
         }
 
@@ -706,10 +713,7 @@ namespace CodeMindMap
                 return false;
             }
 
-            // Remove surrounding quotes if present
             exportResult = exportResult.Trim('"');
-
-            //Debug.WriteLine("Trim Quotes Export Result: " + exportResult);
 
             if (string.IsNullOrWhiteSpace(exportResult))
             {
@@ -769,6 +773,7 @@ namespace CodeMindMap
             if (loadResult)
             {
                 MindMapPackage?.SetMindMapDataFilePath(filePath);
+                MindMapPackage?.SaveSolutionMindMapDataToSettings();
             }
         }
 

@@ -142,6 +142,15 @@ namespace CodeMindMap
                 return;
             }
 
+            SetDefaultSolutionMindMapData();
+
+            SaveSolutionMindMapDataToSettings();
+
+            await ReloadMindMapBrowser();
+        }
+
+        public void SetDefaultSolutionMindMapData()
+        {
             var solutionId = GetSolutionId();
             if (string.IsNullOrEmpty(solutionId))
             {
@@ -161,17 +170,18 @@ namespace CodeMindMap
             }
 
             _currentSolutionMindMapData = solutionMindMapData;
-
-            SaveSolutionMindMapDataToSettings();
-
-            await ReloadMindMapBrowser();
         }
 
         private async void SolutionEvents_OnAfterCloseSolution(object sender, EventArgs eventArgs)
         {
-            _currentSolutionMindMapData = new SolutionMindMapData();
+            SetEmptySolutionMindMapData();
 
             await ReloadMindMapBrowser();
+        }
+
+        public void SetEmptySolutionMindMapData()
+        {
+            _currentSolutionMindMapData = new SolutionMindMapData();
         }
 
         private async Task ReloadMindMapBrowser()
@@ -274,7 +284,7 @@ namespace CodeMindMap
             _currentSolutionMindMapData = solutionMindMapData;
         }
 
-        private void SaveSolutionMindMapDataToSettings()
+        public void SaveSolutionMindMapDataToSettings()
         {
             if (_currentSolutionMindMapData.IsEmpty)
             {

@@ -19,7 +19,6 @@ namespace CodeMindMap
             var dirName = Path.GetRandomFileName();
             var dirPath = Path.Combine(appDataFolderPath, dirName);
 
-
             try
             {
                 if (!Directory.Exists(dirPath))
