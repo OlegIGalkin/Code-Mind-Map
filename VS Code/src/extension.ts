@@ -372,15 +372,15 @@ export class CodeMindMapPanel {
                         break;
 
                     case 'newMindMap':
-                        // Show confirmation dialog before resetting
                         const result = await vscode.window.showWarningMessage(
-                            'Create a new code mind map? Your current progress will be lost.',
+                            'Create a new code mind map?',
                             { modal: true },
                             'OK'
                         );
                         
                         if (result === 'OK') {
-                            // Reset the mind map to its initial state
+                            CodeMindMapPanel._lastSavePath = undefined;
+                            this._pendingSaveUri = undefined;
                             this._panel.webview.postMessage({
                                 action: 'resetMindMap'
                             });
@@ -547,12 +547,12 @@ export class CodeMindMapPanel {
     <div id="container">
         <div style="display: flex; gap: 4px; padding: 8px; background: #222; border-bottom: 1px solid #444;">
             <!-- Add Code Node -->
-            <button class="mm-btn" id="addCodeNodeBtn" title="Add selected code as a mind map node" disabled>
+            <button class="mm-btn" id="addCodeNodeBtn" title="Add the selected code as a mindmap node" disabled>
                 <span class="mm-icon" aria-label="Add">➕</span>
                 <span class="mm-label">Add Code Linked Node</span>
             </button>
             <!-- Go To Linked Code -->
-            <button class="mm-btn" id="goToCodeBtn" title="Jump to code linked to node" disabled>
+            <button class="mm-btn" id="goToCodeBtn" title="Jump to code linked with the node" disabled>
                 <span class="mm-icon" aria-label="Go to link">🔗</span>
                 <span class="mm-label">Jump To Linked Code</span>
             </button>
@@ -562,12 +562,12 @@ export class CodeMindMapPanel {
                 <span class="mm-label">New Code Mind Map</span>
             </button>
             <!-- Open Dev Tools -->
-            <button class="mm-btn hidden" id="openDevToolsBtn" title="Open Dev Tools">
+            <button class="mm-btn hidden" id="openDevToolsBtn" title="Open dev tools">
                 <span class="mm-icon" aria-label="Dev tools">🛠️</span>
                 <span class="mm-label">Open Dev Tools</span>
             </button>
             <!-- Auto-Save As -->
-            <button class="mm-btn" id="saveMindMapBtn" title="Automatically save mind map as...">
+            <button class="mm-btn" id="saveMindMapBtn" title="Automatically save your mind map as...">
                 <span class="mm-icon" aria-label="Save">💾</span>
                 <span class="mm-label">Auto-Save As...</span>
             </button>
@@ -726,11 +726,11 @@ export class CodeMindMapPanel {
                             expanded: true,
                             children: [
                                 {
-                                    topic: 'Alt+Mouse Wheel Up/Down - Zoom in/out',
+                                    topic: 'Alt+Scroll - Zoom in/out',
                                     id: 'bd1c1cb51e6745d3',
                                 },
                                 {
-                                    topic: 'Shift+Mouse Scroll - Scroll horizontally',
+                                    topic: 'Shift+Scroll - Scroll horizontally',
                                     id: '16710cea5cfb50712c8832676b87d2cc',
                                 },
                                 {

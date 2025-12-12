@@ -26,6 +26,9 @@ See screenshots at [CodeMindMap.com](https://codemindmap.com/)
 
 ## Versions
 
+- **v1.18**
+  - Fixed a bug with creating a new mind map.
+
 - **v1.17**
   - The MindElixir mind mapping engine has been updated from version 4.0.0 to version 4.6.2.
 
