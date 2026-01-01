@@ -2,6 +2,7 @@
 using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.Web.WebView2.Core;
 using Newtonsoft.Json;
 using System;
@@ -208,8 +209,32 @@ namespace CodeMindMap
             catch (Exception exception)
             {
                 Debug.WriteLine($"Executing addChildNode script failed: {exception.Message}");
+
+                return;
+            }
+
+            await ShowStaturBarNodeAddedSuccessfully();
+        }
+
+        private async Task ShowStaturBarNodeAddedSuccessfully()
+        {
+            try
+            {
+                IVsStatusbar statusBar = ServiceProvider.GlobalProvider.GetService(typeof(SVsStatusbar)) as IVsStatusbar;
+
+                statusBar.SetText("Code node added");
+
+                await Task.Delay(TimeSpan.FromMilliseconds(StatusBarNotificationDelay));
+
+                statusBar.Clear();
+            }
+            catch (Exception exception)
+            {
+                Debug.WriteLine($"Show status bar notification failed: {exception.Message}");
             }
         }
+
+        private const int StatusBarNotificationDelay = 1500;
 
         /// <summary>
         /// Encodes a string to be represented as a string literal. The format
@@ -451,7 +476,7 @@ namespace CodeMindMap
 
             try
             {
-                var contentLineNumber = GetExpectedContentLineNumber(filePath, code);
+                var contentLineNumber = GetExpectedContentLineNumber(filePath, code, exactMatch: false, ignoreCase: true);
                 if (contentLineNumber > 0)
                 {
                     lineNumber = contentLineNumber;
@@ -472,6 +497,119 @@ namespace CodeMindMap
             ThreadHelper.ThrowIfNotOnUIThread();
 
             var dte = Package.GetGlobalService(typeof(DTE)) as DTE2;
+            if (dte == null)
+            {
+                return 0;
+            }
+
+            var searchLines = expectedContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            if (searchLines.All(string.IsNullOrWhiteSpace))
+            {
+                return 0;
+            }
+
+            try
+            {
+                // First try direct file reading (fastest)
+                if (File.Exists(filePath))
+                {
+                    var fileContent = File.ReadAllText(filePath);
+                    var fileLines = fileContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+                    var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+
+                    for (int line = 0; line <= fileLines.Length - searchLines.Length; line++)
+                    {
+                        bool match = true;
+                        for (int i = 0; i < searchLines.Length; i++)
+                        {
+                            if (string.IsNullOrWhiteSpace(searchLines[i])) continue;
+
+                            bool lineMatch = exactMatch
+                                ? fileLines[line + i].Equals(searchLines[i], comparison)
+                                : fileLines[line + i].IndexOf(searchLines[i], comparison) >= 0;
+
+                            if (!lineMatch) 
+                            { 
+                                match = false; break; 
+                            }
+                        }
+                        if (match)
+                        {
+                            return line + 1;
+                        }
+                    }
+                    return 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Searching lines in files failed: {ex.Message}");
+            }
+
+            try
+            {
+                // Fall back to VS document API
+                Document doc = FindOpenDocument(dte, filePath);
+                if (doc == null)
+                {
+                    var window = dte.ItemOperations.OpenFile(filePath, EnvDTE.Constants.vsViewKindTextView);
+
+                    doc = window?.Document;
+                    if (doc == null)
+                    {
+                        return 0;
+                    }
+                }
+
+                var textDoc = doc.Object("TextDocument") as TextDocument;
+                if (textDoc == null)
+                {
+                    return 0;
+                }
+
+                var editPoint = textDoc.StartPoint.CreateEditPoint();
+                int totalLines = textDoc.EndPoint.Line;
+                var comparisonType = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+
+                for (int line = 1; line <= totalLines - searchLines.Length + 1; line++)
+                {
+                    bool match = true;
+                    for (int i = 0; i < searchLines.Length; i++)
+                    {
+                        if (string.IsNullOrWhiteSpace(searchLines[i]))
+                        {
+                            continue;
+                        }
+
+                        string currentLine = editPoint.GetLines(line + i, line + i + 1);
+                        bool lineMatch = exactMatch
+                            ? currentLine.Equals(searchLines[i], comparisonType)
+                            : currentLine.IndexOf(searchLines[i], comparisonType) >= 0;
+
+                        if (!lineMatch) 
+                        { 
+                            match = false; break; 
+                        }
+                    }
+
+                    if (match)
+                    {
+                        return line;
+                    }
+                }
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Searching lines in documents failed: {ex.Message}");
+                return 0;
+            }
+        }
+
+        private Document FindOpenDocument(DTE2 dte, string filePath)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
 
             Document doc = null;
 
@@ -495,68 +633,11 @@ namespace CodeMindMap
                 {
                     Debug.WriteLine($"Navigation failed: {exception.Message}");
 
-                    return 0;
+                    return null;
                 }
             }
 
-            // Normalize the search pattern
-            var searchLines = expectedContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)
-                                           .Select(l => l.Trim())
-                                           .Where(l => !string.IsNullOrEmpty(l))
-                                           .ToArray();
-
-            if (searchLines.Length == 0)
-            {
-                return 0;
-            }
-
-            try
-            {
-                var textDoc = doc.Object("TextDocument") as TextDocument;
-                var editPoint = textDoc.StartPoint.CreateEditPoint();
-                int totalLines = textDoc.EndPoint.Line;
-
-                var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
-
-                for (int line = 1; line <= totalLines - searchLines.Length + 1; line++)
-                {
-                    bool allLinesMatch = true;
-
-                    for (int i = 0; i < searchLines.Length; i++)
-                    {
-                        string currentLine = editPoint.GetLines(line + i, line + i + 1).Trim();
-                        bool lineMatches;
-
-                        if (exactMatch)
-                        {
-                            lineMatches = currentLine.Equals(searchLines[i], comparison);
-                        }
-                        else
-                        {
-                            lineMatches = currentLine.IndexOf(searchLines[i], comparison) >= 0;
-                        }
-
-                        if (!lineMatches)
-                        {
-                            allLinesMatch = false;
-                            break;
-                        }
-                    }
-
-                    if (allLinesMatch)
-                    {
-                        return line;
-                    }
-                }
-
-                return 0;
-            }
-            catch (Exception exception)
-            {
-                Debug.WriteLine($"Navigation failed: {exception.Message}");
-            }
-
-            return 0;
+            return doc;
         }
 
         public void NavigateToTextWithChecks(string filePath, int lineNumber)

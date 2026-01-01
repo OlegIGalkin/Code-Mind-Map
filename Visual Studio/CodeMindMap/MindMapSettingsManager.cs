@@ -41,21 +41,28 @@ namespace CodeMindMap
                 return new List<SolutionMindMapData>();
             }
 
-            string serializedData = _settingsStore.GetString(CollectionName, SettingsPropertyName);
-
-            // Convert XML back to list
-            var serializer = new System.Xml.Serialization.XmlSerializer(typeof(List<SolutionMindMapData>));
-            using (var reader = new System.IO.StringReader(serializedData))
+            try
             {
-                try
+                string serializedData = _settingsStore.GetString(CollectionName, SettingsPropertyName);
+
+                // Convert XML back to list
+                var serializer = new System.Xml.Serialization.XmlSerializer(typeof(List<SolutionMindMapData>));
+                using (var reader = new System.IO.StringReader(serializedData))
                 {
-                    return (List<SolutionMindMapData>)serializer.Deserialize(reader);
+                    try
+                    {
+                        return (List<SolutionMindMapData>)serializer.Deserialize(reader);
+                    }
+                    catch
+                    {
+                        // Return empty list if deserialization fails
+                        return new List<SolutionMindMapData>();
+                    }
                 }
-                catch
-                {
-                    // Return empty list if deserialization fails
-                    return new List<SolutionMindMapData>();
-                }
+            }
+            catch (Exception)
+            {
+                return new List<SolutionMindMapData>();
             }
         }
     }
