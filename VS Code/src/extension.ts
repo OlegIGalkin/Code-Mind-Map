@@ -293,8 +293,8 @@ export class CodeMindMapPanel {
                         break;
 
                     case 'goToCode':
-                        if (this._lastSelectedNode?.data) {
-                            await this.navigateToCode(this._lastSelectedNode.data);
+                        if (this._lastSelectedNode?.topic && this._lastSelectedNode?.data) {
+                            await this.navigateToCode({ code: this._lastSelectedNode.topic, data: this._lastSelectedNode.data });
                         }
                         break;
 
@@ -366,8 +366,8 @@ export class CodeMindMapPanel {
                         break;
 
                     case 'nodeNavigate':
-                        if (message.nodeData) {
-                            await this.navigateToCode(message.nodeData);
+                        if (message.nodeTopic && message.nodeData) {
+                            await this.navigateToCode({ code: message.nodeTopic, data: message.nodeData });
                         }
                         break;
 
@@ -427,46 +427,219 @@ export class CodeMindMapPanel {
         }
     }
 
-    private async navigateToCode(nodeData: { filePath: string; topLine: number }) {
-		const { filePath, topLine } = nodeData;
-		const absPath = toAbsoluteFromWorkspace(filePath, this._lastSelection?.document.fileName);
-		const document = await vscode.workspace.openTextDocument(absPath);
-		// Find if the document is already open in any tab across all groups (columns)
-		const targetFsPath = document.uri.fsPath;
-		let matchedViewColumn: vscode.ViewColumn | undefined = undefined;
-		for (const group of vscode.window.tabGroups.all) {
-			for (const tab of group.tabs) {
-				const input: any = tab.input as any;
-				const candidateUris: vscode.Uri[] = [];
-				if (input?.uri) {
-					candidateUris.push(input.uri as vscode.Uri);
-				}
-				if (input?.original) {
-					candidateUris.push(input.original as vscode.Uri);
-				}
-				if (input?.modified) {
-					candidateUris.push(input.modified as vscode.Uri);
-				}
-				if (candidateUris.some(u => u.fsPath === targetFsPath)) {
-					matchedViewColumn = group.viewColumn;
-					break;
-				}
-			}
-			if (matchedViewColumn) {
-				break;
-			}
-		}
-		const showOptions = matchedViewColumn ? { viewColumn: matchedViewColumn, preserveFocus: false, preview: false } : undefined;
-		const editor = await vscode.window.showTextDocument(document, showOptions);
-		const line = document.lineAt(topLine - 1);
-		const firstNonWhitespace = line.firstNonWhitespaceCharacterIndex;
-		const position = new vscode.Position(topLine - 1, firstNonWhitespace);
-		editor.selection = new vscode.Selection(position, position);
-		editor.revealRange(
-			new vscode.Range(position, position),
-			vscode.TextEditorRevealType.InCenter
-		);
-	}
+    private async navigateToCode({ code, data }: { code: string; data: any; }) {
+        try {
+            const { filePath, topLine } = data;
+            const absPath = toAbsoluteFromWorkspace(filePath, this._lastSelection?.document.fileName);
+            
+            // Check if file exists
+            if (!await this.fileExists(absPath)) {
+                vscode.window.showErrorMessage(`File not found: ${absPath}`);
+                return;
+            }
+            
+            // Parse search pattern
+            const searchLines = this.parseSearchPattern(code);
+            if (searchLines.length === 0) {
+                vscode.window.showWarningMessage('Search code is empty');
+                return;
+            }
+            
+            // Get or create editor
+            const editor = await this.getOrCreateEditor(absPath);
+            if (!editor) return;
+            
+            // Search with configurable options (could come from extension settings)
+            const searchOptions = {
+                exactMatch: false, // Could be from config
+                ignoreCase: true,  // Could be from config
+                trimSearchLines: false // Preserve whitespace in search
+            };
+            
+            const foundLine = this.findCodeWithOptions(
+                editor.document, 
+                searchLines, 
+                searchOptions
+            );
+            
+            // Navigate or show appropriate message
+            await this.navigateToFoundLine(editor, foundLine, topLine);
+            
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            vscode.window.showErrorMessage(`Navigation failed: ${errorMessage}`);
+        }
+    }
+
+    private async fileExists(filePath: string): Promise<boolean> {
+        try {
+            await vscode.workspace.fs.stat(vscode.Uri.file(filePath));
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    private parseSearchPattern(code: string): string[] {
+        const lines = code.split(/\r\n|\r|\n/);
+        
+        // Remove trailing empty lines but keep internal ones as placeholders
+        let lastNonEmpty = -1;
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].trim() !== '') {
+                lastNonEmpty = i;
+            }
+        }
+        
+        return lastNonEmpty >= 0 ? lines.slice(0, lastNonEmpty + 1) : [];
+    }
+
+    private async getOrCreateEditor(filePath: string): Promise<vscode.TextEditor | undefined> {
+        const targetUri = vscode.Uri.file(filePath);
+        
+        // Check if already open in any visible editor
+        for (const editor of vscode.window.visibleTextEditors) {
+            if (editor.document.uri.fsPath === targetUri.fsPath) {
+                return editor;
+            }
+        }
+        
+        // Check all tabs (including non-visible)
+        let viewColumn: vscode.ViewColumn | undefined;
+        for (const group of vscode.window.tabGroups.all) {
+            for (const tab of group.tabs) {
+                const input: any = tab.input;
+                const uris: vscode.Uri[] = [];
+                if (input?.uri) uris.push(input.uri);
+                if (input?.original) uris.push(input.original);
+                if (input?.modified) uris.push(input.modified);
+                
+                if (uris.some(u => u?.fsPath === targetUri.fsPath)) {
+                    viewColumn = group.viewColumn;
+                    break;
+                }
+            }
+            if (viewColumn) break;
+        }
+        
+        // Open the document
+        const document = await vscode.workspace.openTextDocument(filePath);
+        const showOptions = viewColumn ? 
+            { viewColumn, preserveFocus: false, preview: false } : 
+            undefined;
+        
+        return vscode.window.showTextDocument(document, showOptions);
+    }
+
+    private findCodeWithOptions(
+        document: vscode.TextDocument, 
+        searchLines: string[], 
+        options: { exactMatch: boolean; ignoreCase: boolean; trimSearchLines: boolean }
+    ): number {
+        const lineCount = document.lineCount;
+        
+        // Pre-process search lines based on options
+        const processedSearchLines = searchLines.map(line => {
+            let result = line;
+            if (options.trimSearchLines) {
+                result = result.trim();
+            }
+            if (options.ignoreCase) {
+                result = result.toLowerCase();
+            }
+            return { original: line, processed: result, isEmpty: result.trim() === '' };
+        });
+        
+        // Early exit if search pattern is longer than document
+        if (processedSearchLines.length > lineCount) {
+            return 0;
+        }
+        
+        // Get document lines with preprocessing
+        const documentLines: string[] = [];
+        for (let i = 0; i < lineCount; i++) {
+            let lineText = document.lineAt(i).text;
+            if (options.ignoreCase) {
+                lineText = lineText.toLowerCase();
+            }
+            documentLines.push(lineText);
+        }
+        
+        // Moving window search
+        for (let startLine = 0; startLine <= lineCount - processedSearchLines.length; startLine++) {
+            let allLinesMatch = true;
+            
+            for (let i = 0; i < processedSearchLines.length; i++) {
+                const searchLineInfo = processedSearchLines[i];
+                const documentLine = documentLines[startLine + i];
+                
+                // Skip empty search lines (wildcards)
+                if (searchLineInfo.isEmpty) {
+                    continue;
+                }
+                
+                let lineMatches: boolean;
+                
+                if (options.exactMatch) {
+                    // Exact comparison
+                    if (options.trimSearchLines) {
+                        lineMatches = documentLine.trim() === searchLineInfo.processed;
+                    } else {
+                        lineMatches = documentLine === searchLineInfo.processed;
+                    }
+                } else {
+                    // Substring search
+                    if (options.trimSearchLines) {
+                        lineMatches = documentLine.trim().includes(searchLineInfo.processed);
+                    } else {
+                        lineMatches = documentLine.includes(searchLineInfo.processed);
+                    }
+                }
+                
+                if (!lineMatches) {
+                    allLinesMatch = false;
+                    break;
+                }
+            }
+            
+            if (allLinesMatch) {
+                return startLine + 1; // 1-based line number
+            }
+        }
+        
+        return 0; // Not found
+    }
+
+    private async navigateToFoundLine(
+        editor: vscode.TextEditor, 
+        foundLine: number, 
+        fallbackLine?: number
+    ) {
+        let lineToNavigate: number;
+        
+        if (foundLine > 0) {
+            lineToNavigate = foundLine;
+        } else if (fallbackLine && fallbackLine > 0) {
+            lineToNavigate = fallbackLine;
+        } else {
+            vscode.window.showInformationMessage('Code not found code in file');
+            return;
+        }
+        
+        // Ensure line is within bounds
+        const lineCount = editor.document.lineCount;
+        const targetLine = Math.max(1, Math.min(lineToNavigate, lineCount)) - 1;
+        
+        const line = editor.document.lineAt(targetLine);
+        const position = new vscode.Position(targetLine, line.firstNonWhitespaceCharacterIndex);
+        
+        editor.selection = new vscode.Selection(position, position);
+        
+        await editor.revealRange(
+            new vscode.Range(position, position),
+            vscode.TextEditorRevealType.InCenter
+        );
+    }
 
     public dispose() {
         CodeMindMapPanel.CurrentPanel = undefined;
@@ -1079,5 +1252,27 @@ export class CodeMindMapPanel {
             code: code,
             nodeData: nodeData
         });
+
+        // Create a status bar item
+        this.ShowStatusBarNotification();
+
+    }
+
+    private ShowStatusBarNotification() {
+        const statusBarItem = vscode.window.createStatusBarItem(
+            vscode.StatusBarAlignment.Right,
+            100 // Priority (higher = more to the left)
+        );
+
+        // Show success message
+        statusBarItem.text = "Code node added";
+        statusBarItem.tooltip = "Code node added to Code Mind Map";
+        statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.successBackground');
+        statusBarItem.show();
+
+        // Hide after delay
+        setTimeout(() => {
+            statusBarItem.dispose();
+        }, 1500);
     }
 } 
