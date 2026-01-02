@@ -26,6 +26,10 @@ See screenshots at [CodeMindMap.com](https://codemindmap.com/)
 
 ## Versions
 
+- **v1.19**
+  - "Code node added" status bar notification.
+  - Improved navigation with searching code with the "moving window" approach.
+
 - **v1.18**
   - Fixed a bug with creating a new mind map.
 
