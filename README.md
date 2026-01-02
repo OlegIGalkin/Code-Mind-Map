@@ -12,7 +12,7 @@ Learn more at https://codemindmap.com/
 
 # Code Mind Map Visual Studio/VS Code Extension
 
-A mind mapping extension with nodes linked to code.
+An extension for creating mind maps with nodes linked to code. Easily add code snippets as nodes and navigate between the mind map and your code files.
 
 ## 1. Open the Mind Map Window
 - Visual Studio: Go to View → Other Windows → Code Mind Map to open the extension panel.
