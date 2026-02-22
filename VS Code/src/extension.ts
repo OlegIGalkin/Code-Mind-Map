@@ -739,6 +739,18 @@ export class CodeMindMapPanel {
             color: #fff;
             font-size: 13px;
         }
+        .dev-badge {
+            margin-left: auto;
+            align-self: center;
+            padding: 2px 6px;
+            border: 1px solid #ff9800;
+            border-radius: 999px;
+            color: #ff9800;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+        }
         .hidden {
             display: none !important;
         }
@@ -797,6 +809,7 @@ export class CodeMindMapPanel {
                 <span class="mm-icon" aria-label="Color palette">🎨</span>
                 <span class="mm-label">Toggle Color Scheme</span>
             </button>
+            <span class="dev-badge" title="Local development build">DEV</span>
         </div>
         <div id="map"></div>
     </div>
@@ -993,6 +1006,7 @@ export class CodeMindMapPanel {
 
             mind = new MindElixir(options);
             mind.init(data);
+            scheduleApplyAllStatuses();
 
             // Apply any import that arrived before mind was ready
             if (pendingImportData !== null) {
@@ -1015,20 +1029,46 @@ export class CodeMindMapPanel {
                 if (!nodeObj || !nodeObj.id) return;
                 const nodeElement = MindElixir.E(nodeObj.id);
                 if (!nodeElement) return;
-                
+
                 const status = nodeObj.data?.status || 'not-started';
-                const domEl = nodeElement.getEl?.();
-                if (!domEl) return;
-                
+                const domEl = nodeElement.getEl?.() || nodeElement;
+                if (!domEl || !domEl.classList) return;
+
                 // Remove all status classes
                 domEl.classList.remove('node-completed', 'node-in-progress');
-                
+
                 // Apply new status class
                 if (status === 'completed') {
                     domEl.classList.add('node-completed');
                 } else if (status === 'in-progress') {
                     domEl.classList.add('node-in-progress');
                 }
+            }
+
+            function applyAllStatuses() {
+                const root = mind?.nodeData;
+                if (!root) return;
+                const stack = [root];
+                while (stack.length > 0) {
+                    const node = stack.pop();
+                    if (!node) continue;
+                    updateNodeStatus(node);
+                    if (Array.isArray(node.children)) {
+                        for (const child of node.children) {
+                            stack.push(child);
+                        }
+                    }
+                }
+            }
+
+            function scheduleApplyAllStatuses() {
+                if (!mind) return;
+                requestAnimationFrame(() => {
+                    applyAllStatuses();
+                    requestAnimationFrame(() => applyAllStatuses());
+                });
+                setTimeout(() => applyAllStatuses(), 0);
+                setTimeout(() => applyAllStatuses(), 100);
             }
 
             mind.bus.addListener('selectNodes', nodes => {
@@ -1041,6 +1081,7 @@ export class CodeMindMapPanel {
                     nodeTopic: node.topic,
                     nodeData: node.data,
                 });
+                scheduleApplyAllStatuses();
             });
 
             mind.bus.addListener('selectNewNode', () => {
@@ -1053,6 +1094,7 @@ export class CodeMindMapPanel {
                     action: 'mindMapOperation',
                     operationName: operation.name,
                 });
+                scheduleApplyAllStatuses();
             });
 
             document.addEventListener('click', (e) => {
@@ -1107,15 +1149,16 @@ export class CodeMindMapPanel {
                 else if ((e.key === 'c' || e.key === 'C') && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
                     e.preventDefault();
                     const currentNode = mind.currentNode?.nodeObj;
-                    if (!currentNode || !currentNode.data) return;
-                    
+                    if (!currentNode) return;
+                    currentNode.data = currentNode.data || {};
+
                     // Cycle through status: not-started -> in-progress -> completed -> not-started
                     const statuses = ['not-started', 'in-progress', 'completed'];
                     const currentStatus = currentNode.data.status || 'not-started';
                     const currentIndex = statuses.indexOf(currentStatus);
                     const nextIndex = (currentIndex + 1) % statuses.length;
                     currentNode.data.status = statuses[nextIndex];
-                    
+
                     // Update visual appearance
                     updateNodeStatus(currentNode);
                 }
@@ -1218,11 +1261,14 @@ export class CodeMindMapPanel {
 
                 mind.refresh(mindData);
                 mind.clearHistory();
+                scheduleApplyAllStatuses();
+                mind.clearHistory();
 
                 const dataThemeName = getThemeName(mindData);
 
                 if (dataThemeName != '' && themeManager.contains(dataThemeName) && dataThemeName != mind.theme?.name) {
                     mind.changeTheme(themeManager.getTheme(dataThemeName));
+                    scheduleApplyAllStatuses();
                 }
 
                 return { success: true, error: '' };
@@ -1256,7 +1302,7 @@ export class CodeMindMapPanel {
 
         };
 
-        // Add event listeners for all buttons, then initialize the mind map
+        // Helper function to set up UI and initialize mind map
         function setupUI() {
             // Open Dev Tools button
             const devBtn = document.getElementById('openDevToolsBtn');
@@ -1317,8 +1363,7 @@ export class CodeMindMapPanel {
             initMindMap();
         }
 
-        // Handle both early and late execution: type="module" scripts are deferred,
-        // so DOMContentLoaded may have already fired by the time this runs.
+        // Initialize when DOM is ready - handle both early and late execution
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', setupUI);
         } else {
@@ -1376,6 +1421,8 @@ export class CodeMindMapPanel {
                 case 'resetMindMap':
                     if (mind) {
                         mind.refresh(data);
+                        mind.clearHistory();
+                        scheduleApplyAllStatuses();
                         mind.clearHistory();
                     }
                     break;
