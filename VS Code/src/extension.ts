@@ -726,6 +726,21 @@ export class CodeMindMapPanel {
         .hidden {
             display: none !important;
         }
+        /* Status indicator styles */ 
+        .node-completed {
+            opacity: 0.6;
+            text-decoration: line-through;
+        }
+        .node-in-progress::before {
+            content: '⟳ ';
+            color: #ff9800;
+            font-weight: bold;
+        }
+        .node-completed::before {
+            content: '✓ ';
+            color: #4caf50;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -941,6 +956,24 @@ export class CodeMindMapPanel {
                                 },
                             ],
                         },
+                        {
+                            topic: 'C - Toggle node status (Not Started, In Progress, Completed)',
+                            id: 'bd1bb2ac4bbab460',
+                            children: [
+                                {
+                                    topic: 'Press C to cycle through status states',
+                                    id: 'bd1bb2ac4bbab461',
+                                },
+                                {
+                                    topic: 'Completed nodes show ✓ and appear faded',
+                                    id: 'bd1bb2ac4bbab462',
+                                },
+                                {
+                                    topic: 'In Progress nodes show ⟳ in orange',
+                                    id: 'bd1bb2ac4bbab463',
+                                },
+                            ],
+                        },
                     ],
                     expanded: true,
                 },
@@ -967,6 +1000,26 @@ export class CodeMindMapPanel {
                 };
             });
 
+            // Helper function to update node visual status
+            function updateNodeStatus(nodeObj) {
+                if (!nodeObj || !nodeObj.id) return;
+                const nodeElement = MindElixir.E(nodeObj.id);
+                if (!nodeElement) return;
+                
+                const status = nodeObj.data?.status || 'not-started';
+                const domEl = nodeElement.getEl?.();
+                if (!domEl) return;
+                
+                // Remove all status classes
+                domEl.classList.remove('node-completed', 'node-in-progress');
+                
+                // Apply new status class
+                if (status === 'completed') {
+                    domEl.classList.add('node-completed');
+                } else if (status === 'in-progress') {
+                    domEl.classList.add('node-in-progress');
+                }
+            }
             mind.bus.addListener('selectNode', node => {
                 vscode.postMessage({
                     action: 'nodeSelected',
@@ -1013,6 +1066,21 @@ export class CodeMindMapPanel {
                         .catch(err => console.error('Failed to copy text: ', err));
                     e.preventDefault();
                 }
+                else if ((e.key === 'c' || e.key === 'C') && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+                    e.preventDefault();
+                    const currentNode = mind.currentNode?.nodeObj;
+                    if (!currentNode || !currentNode.data) return;
+                    
+                    // Cycle through status: not-started -> in-progress -> completed -> not-started
+                    const statuses = ['not-started', 'in-progress', 'completed'];
+                    const currentStatus = currentNode.data.status || 'not-started';
+                    const currentIndex = statuses.indexOf(currentStatus);
+                    const nextIndex = (currentIndex + 1) % statuses.length;
+                    currentNode.data.status = statuses[nextIndex];
+                    
+                    // Update visual appearance
+                    updateNodeStatus(currentNode);
+                }
             });
 
             document.addEventListener('wheel', function(e) {
@@ -1041,7 +1109,7 @@ export class CodeMindMapPanel {
                 topic = topic.substring(1, topic.length - 1);
             }
             const { fileName, filePath, topLine } = codeInfoObject;
-            const codeInfo = { fileName, filePath, topLine };
+            const codeInfo = { fileName, filePath, topLine, status: 'not-started' };
             const childData = {
                 id: 'child_' + Date.now(),
                 topic: topic,

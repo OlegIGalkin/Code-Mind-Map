@@ -5,5 +5,6 @@
         public string FileName;
         public string FilePath;
         public int TopLine;
+        public string Status = "not-started"; // not-started, in-progress, completed
     }
 }
