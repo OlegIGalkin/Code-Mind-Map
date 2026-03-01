@@ -853,6 +853,7 @@ export class CodeMindMapPanel {
 
         let mind, data, themeManager, lastSelectedNode;
         let pendingImport = null; // stores importMindMapData payload received before mind is ready
+        let linkDivDebounceTimer = null; // debounce timer for the linkDiv bus event
 
         function initMindMap() {
             const options = {
@@ -1107,20 +1108,14 @@ export class CodeMindMapPanel {
                         }
                     }
                 }
-                // Redraw branch lines to match any node-size changes caused by padding adjustments
-                mind.linkDiv();
+                // linkDiv is called by MindElixir itself after layout; we must not call it here
+                // as that would create an infinite loop via the linkDiv bus listener
             }
 
             function scheduleApplyAllStatuses() {
                 if (!mind) return;
-                requestAnimationFrame(() => {
-                    applyAllStatuses();
-                    requestAnimationFrame(() => applyAllStatuses());
-                });
-                setTimeout(() => applyAllStatuses(), 0);
+                requestAnimationFrame(() => applyAllStatuses());
                 setTimeout(() => applyAllStatuses(), 50);
-                setTimeout(() => applyAllStatuses(), 150);
-                setTimeout(() => applyAllStatuses(), 500); // catch slow initial renders
             }
 
             mind.bus.addListener('selectNodes', nodes => {
@@ -1139,6 +1134,14 @@ export class CodeMindMapPanel {
             mind.bus.addListener('selectNewNode', () => {
                 // Mirror the same focus behavior for newly created nodes.
                 mind.map?.focus();
+            });
+
+            // Debounced linkDiv listener: MindElixir fires linkDiv after every layout pass
+            // (including multiple passes after refresh/changeTheme). Wait for 50ms of silence
+            // before applying statuses so we always run after the final DOM state.
+            mind.bus.addListener('linkDiv', () => {
+                clearTimeout(linkDivDebounceTimer);
+                linkDivDebounceTimer = setTimeout(applyAllStatuses, 50);
             });
 
             mind.bus.addListener('operation', operation => {
@@ -1313,15 +1316,14 @@ export class CodeMindMapPanel {
 
                 mind.refresh(mindData);
                 mind.clearHistory();
-                scheduleApplyAllStatuses();
                 mind.clearHistory();
 
                 const dataThemeName = getThemeName(mindData);
-
                 if (dataThemeName != '' && themeManager.contains(dataThemeName) && dataThemeName != mind.theme?.name) {
                     mind.changeTheme(themeManager.getTheme(dataThemeName));
-                    scheduleApplyAllStatuses();
                 }
+                // Statuses are applied via the debounced linkDiv bus listener
+                // which fires after MindElixir's layout settles.
 
                 return { success: true, error: '' };
 
@@ -1473,8 +1475,6 @@ export class CodeMindMapPanel {
                 case 'resetMindMap':
                     if (mind) {
                         mind.refresh(data);
-                        mind.clearHistory();
-                        scheduleApplyAllStatuses();
                         mind.clearHistory();
                     }
                     break;
