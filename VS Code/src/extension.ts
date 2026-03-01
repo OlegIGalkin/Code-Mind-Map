@@ -1159,6 +1159,8 @@ export class CodeMindMapPanel {
                     e.preventDefault();
                 }
                 else if ((e.key === 'c' || e.key === 'C') && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+                    // Skip if MindElixir's inline editor is open
+                    if (document.getElementById('input-box')) return;
                     e.preventDefault();
                     const currentNode = mind.currentNode?.nodeObj;
                     if (!currentNode) return;
