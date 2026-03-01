@@ -1082,16 +1082,10 @@ export class CodeMindMapPanel {
 
                 if (!status) {
                     topicEl.removeAttribute('data-status');
-                    topicEl.classList.remove('node-completed');
                     return;
                 }
 
                 topicEl.setAttribute('data-status', status);
-                if (status === 'completed') {
-                    topicEl.classList.add('node-completed');
-                } else {
-                    topicEl.classList.remove('node-completed');
-                }
             }
 
             function applyAllStatuses() {
