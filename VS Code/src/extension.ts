@@ -747,12 +747,12 @@ export class CodeMindMapPanel {
 
         /* Status indicator styles */
         /* Root (30px padding) and level-1 (25px padding) already have enough room for the icon */
-        .map-container me-tpc[data-status] {
+        .map-container me-tpc {
             position: relative;
         }
-        /* Level-2+ nodes sit inside me-children and only have 3px padding — add room for the icon.
+        /* Level-2+ nodes: always reserve icon space so text never shifts when status changes.
            mind.linkDiv() is called after applying statuses to redraw lines at the new sizes. */
-        .map-container me-children me-parent me-tpc[data-status] {
+        .map-container me-children me-parent me-tpc {
             padding-left: 20px;
             box-sizing: border-box;
         }
