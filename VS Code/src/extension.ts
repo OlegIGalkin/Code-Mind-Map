@@ -836,7 +836,7 @@ export class CodeMindMapPanel {
         const vscode = acquireVsCodeApi();
 
         let mind, data, themeManager;
-        let pendingImportData = null; // stores importMindMapData payload received before mind is ready
+        let pendingImport = null; // stores importMindMapData payload received before mind is ready
 
         function initMindMap() {
             const options = {
@@ -1029,13 +1029,14 @@ export class CodeMindMapPanel {
 
             mind = new MindElixir(options);
             mind.init(data);
-            scheduleApplyAllStatuses();
 
             // Apply any import that arrived before mind was ready
-            if (pendingImportData !== null) {
-                window.importData(pendingImportData);
-                pendingImportData = null;
+            if (pendingImport !== null) {
+                window.importData(pendingImport);
+                pendingImport = null;
             }
+
+            scheduleApplyAllStatuses();
 
             // Intercept direction-change methods so autosave is triggered when the
             // user switches between left tree, right tree, and flower (side) views.
@@ -1109,6 +1110,7 @@ export class CodeMindMapPanel {
                 setTimeout(() => applyAllStatuses(), 0);
                 setTimeout(() => applyAllStatuses(), 50);
                 setTimeout(() => applyAllStatuses(), 150);
+                setTimeout(() => applyAllStatuses(), 500); // catch slow initial renders
             }
 
             mind.bus.addListener('selectNode', node => {
@@ -1434,7 +1436,7 @@ export class CodeMindMapPanel {
                     if (mind) {
                         window.importData(message.data);
                     } else {
-                        pendingImportData = message.data;
+                        pendingImport = message.data; // mind not ready yet; apply after init
                     }
                     break;
                 case 'resetMindMap':
