@@ -738,6 +738,13 @@ export class CodeMindMapPanel {
         .hidden {
             display: none !important;
         }
+        /* Root node: match the same padding-to-font ratio as level-1 nodes.
+           Level-1 uses 8px/25px padding with 14px font (ratios 0.57v / 1.79h).
+           Root has 25px font, so target: 14px vertical / 45px horizontal. */
+        .map-container me-root me-tpc {
+            padding: 14px 45px !important;
+        }
+
         /* Status indicator styles */
         /* Root (30px padding) and level-1 (25px padding) already have enough room for the icon */
         .map-container me-tpc[data-status] {
