@@ -1004,7 +1004,7 @@ export class CodeMindMapPanel {
                             ],
                         },
                         {
-                            topic: 'C - Toggle node status (Not Started, In Progress, Completed)',
+                            topic: 'C - Toggle node status (In Progress, Completed)',
                             id: 'bd1bb2ac4bbab460',
                             children: [
                                 {
@@ -1055,7 +1055,7 @@ export class CodeMindMapPanel {
                 const nodeElement = MindElixir.E(nodeObj.id);
                 if (!nodeElement) return;
 
-                const status = nodeObj.data?.status || 'not-started';
+                const status = nodeObj.data?.status || null;
                 const domEl = nodeElement.getEl?.() || nodeElement;
                 if (!domEl) return;
 
@@ -1070,7 +1070,7 @@ export class CodeMindMapPanel {
 
                 if (!topicEl) return;
 
-                if (status === 'not-started') {
+                if (!status) {
                     topicEl.removeAttribute('data-status');
                     topicEl.classList.remove('node-completed');
                     return;
@@ -1170,12 +1170,16 @@ export class CodeMindMapPanel {
                     if (!currentNode) return;
                     currentNode.data = currentNode.data || {};
 
-                    // Cycle through status: not-started -> in-progress -> completed -> not-started
-                    const statuses = ['not-started', 'in-progress', 'completed'];
-                    const currentStatus = currentNode.data.status || 'not-started';
+                    // Cycle: (none) -> in-progress -> completed -> (none)
+                    const statuses = [null, 'in-progress', 'completed'];
+                    const currentStatus = currentNode.data.status || null;
                     const currentIndex = statuses.indexOf(currentStatus);
-                    const nextIndex = (currentIndex + 1) % statuses.length;
-                    currentNode.data.status = statuses[nextIndex];
+                    const next = statuses[(currentIndex + 1) % statuses.length];
+                    if (next === null) {
+                        delete currentNode.data.status;
+                    } else {
+                        currentNode.data.status = next;
+                    }
 
                     // Update visual appearance
                     updateNodeStatus(currentNode);
@@ -1211,7 +1215,7 @@ export class CodeMindMapPanel {
                 topic = topic.substring(1, topic.length - 1);
             }
             const { fileName, filePath, topLine } = codeInfoObject;
-            const codeInfo = { fileName, filePath, topLine, status: 'not-started' };
+            const codeInfo = { fileName, filePath, topLine };
             const childData = {
                 id: 'child_' + Date.now(),
                 topic: topic,
