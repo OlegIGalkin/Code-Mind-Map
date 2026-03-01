@@ -759,6 +759,9 @@ export class CodeMindMapPanel {
         .map-container me-tpc[data-status="completed"] {
             text-decoration: line-through;
         }
+        .map-container me-tpc[data-status="completed"] > .text {
+            text-decoration: line-through !important;
+        }
         .map-container me-tpc[data-status]::before {
             position: absolute;
             left: 2px; /* level-2+: within the 20px padding we add */
