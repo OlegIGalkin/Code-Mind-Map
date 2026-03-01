@@ -750,7 +750,6 @@ export class CodeMindMapPanel {
             box-sizing: border-box;
         }
         .map-container me-tpc[data-status="completed"] {
-            opacity: 0.6;
             text-decoration: line-through;
         }
         .map-container me-tpc[data-status]::before {
