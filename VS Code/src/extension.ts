@@ -738,20 +738,37 @@ export class CodeMindMapPanel {
         .hidden {
             display: none !important;
         }
-        /* Status indicator styles */ 
-        .node-completed {
+        /* Status indicator styles */
+        /* Root (30px padding) and level-1 (25px padding) already have enough room for the icon */
+        .map-container me-tpc[data-status] {
+            position: relative;
+        }
+        /* Level-2+ nodes sit inside me-children and only have 3px padding — add room for the icon.
+           mind.linkDiv() is called after applying statuses to redraw lines at the new sizes. */
+        .map-container me-children me-parent me-tpc[data-status] {
+            padding-left: 20px;
+            box-sizing: border-box;
+        }
+        .map-container me-tpc[data-status="completed"] {
             opacity: 0.6;
             text-decoration: line-through;
         }
-        .node-in-progress::before {
-            content: '⟳ ';
-            color: #ff9800;
+        .map-container me-tpc[data-status]::before {
+            position: absolute;
+            left: 2px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px;
+            text-align: center;
             font-weight: bold;
         }
-        .node-completed::before {
-            content: '✓ ';
+        .map-container me-tpc[data-status="in-progress"]::before {
+            content: '⟳';
+            color: #ff9800;
+        }
+        .map-container me-tpc[data-status="completed"]::before {
+            content: '✓';
             color: #4caf50;
-            font-weight: bold;
         }
     </style>
 </head>
@@ -1022,16 +1039,30 @@ export class CodeMindMapPanel {
 
                 const status = nodeObj.data?.status || 'not-started';
                 const domEl = nodeElement.getEl?.() || nodeElement;
-                if (!domEl || !domEl.classList) return;
+                if (!domEl) return;
 
-                // Remove all status classes
-                domEl.classList.remove('node-completed', 'node-in-progress');
+                const topicEl = (() => {
+                    if (domEl.tagName === 'ME-TPC') return domEl;
+                    const byQuery = domEl.querySelector?.('me-tpc');
+                    if (byQuery) return byQuery;
+                    const byTag = domEl.getElementsByTagName?.('me-tpc')?.[0];
+                    if (byTag) return byTag;
+                    return domEl;
+                })();
 
-                // Apply new status class
+                if (!topicEl) return;
+
+                if (status === 'not-started') {
+                    topicEl.removeAttribute('data-status');
+                    topicEl.classList.remove('node-completed');
+                    return;
+                }
+
+                topicEl.setAttribute('data-status', status);
                 if (status === 'completed') {
-                    domEl.classList.add('node-completed');
-                } else if (status === 'in-progress') {
-                    domEl.classList.add('node-in-progress');
+                    topicEl.classList.add('node-completed');
+                } else {
+                    topicEl.classList.remove('node-completed');
                 }
             }
 
@@ -1049,6 +1080,8 @@ export class CodeMindMapPanel {
                         }
                     }
                 }
+                // Redraw branch lines to match any node-size changes caused by padding adjustments
+                mind.linkDiv();
             }
 
             function scheduleApplyAllStatuses() {
@@ -1058,7 +1091,8 @@ export class CodeMindMapPanel {
                     requestAnimationFrame(() => applyAllStatuses());
                 });
                 setTimeout(() => applyAllStatuses(), 0);
-                setTimeout(() => applyAllStatuses(), 100);
+                setTimeout(() => applyAllStatuses(), 50);
+                setTimeout(() => applyAllStatuses(), 150);
             }
 
             mind.bus.addListener('selectNode', node => {
