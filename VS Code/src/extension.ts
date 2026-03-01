@@ -1216,6 +1216,9 @@ export class CodeMindMapPanel {
 
                     // Update visual appearance
                     updateNodeStatus(currentNode);
+
+                    // Trigger autosave
+                    vscode.postMessage({ action: 'mindMapOperation', operationName: 'updateNodeStatus' });
                 }
             });
 
