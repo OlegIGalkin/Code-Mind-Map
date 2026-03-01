@@ -844,6 +844,43 @@ export class CodeMindMapPanel {
                 el: '#map',
                 allowUndo: true,
                 toolBar: true,
+                contextMenu: {
+                    extend: [
+                        {
+                            name: '⟳ In Progress',
+                            onclick: () => {
+                                const node = mind.currentNode?.nodeObj;
+                                if (!node) return;
+                                node.data = node.data || {};
+                                node.data.status = 'in-progress';
+                                updateNodeStatus(node);
+                                vscode.postMessage({ action: 'mindMapOperation', operationName: 'updateNodeStatus' });
+                            }
+                        },
+                        {
+                            name: '✓ Completed',
+                            onclick: () => {
+                                const node = mind.currentNode?.nodeObj;
+                                if (!node) return;
+                                node.data = node.data || {};
+                                node.data.status = 'completed';
+                                updateNodeStatus(node);
+                                vscode.postMessage({ action: 'mindMapOperation', operationName: 'updateNodeStatus' });
+                            }
+                        },
+                        {
+                            name: '✕ Clear Status',
+                            onclick: () => {
+                                const node = mind.currentNode?.nodeObj;
+                                if (!node) return;
+                                node.data = node.data || {};
+                                delete node.data.status;
+                                updateNodeStatus(node);
+                                vscode.postMessage({ action: 'mindMapOperation', operationName: 'updateNodeStatus' });
+                            }
+                        },
+                    ]
+                },
                 view: {
                     beforeSelect(el, node) {
                         mind.currentNode = node;
