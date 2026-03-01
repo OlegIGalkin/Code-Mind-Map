@@ -761,12 +761,19 @@ export class CodeMindMapPanel {
         }
         .map-container me-tpc[data-status]::before {
             position: absolute;
-            left: 2px;
+            left: 2px; /* level-2+: within the 20px padding we add */
             top: 50%;
             transform: translateY(-50%);
             width: 14px;
             text-align: center;
             font-weight: bold;
+        }
+        /* Center icon in the existing left padding for root (45px) and level-1 (25px) */
+        .map-container me-root me-tpc[data-status]::before {
+            left: 16px; /* (45px - 14px) / 2 */
+        }
+        .map-container me-main > me-wrapper > me-parent > me-tpc[data-status]::before {
+            left: 6px; /* (25px - 14px) / 2 */
         }
         .map-container me-tpc[data-status="in-progress"]::before {
             content: '⟳';
