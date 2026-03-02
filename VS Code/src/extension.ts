@@ -938,6 +938,16 @@ export class CodeMindMapPanel {
             mind = new MindElixir(options);
             mind.init(data);
 
+            // Intercept direction-change methods so autosave is triggered when the
+            // user switches between left tree, right tree, and flower (side) views.
+            ['initLeft', 'initRight', 'initSide'].forEach(method => {
+                const original = mind[method].bind(mind);
+                mind[method] = function() {
+                    original();
+                    vscode.postMessage({ action: 'mindMapOperation', operationName: 'changeDirection' });
+                };
+            });
+
             mind.bus.addListener('selectNode', node => {
                 vscode.postMessage({
                     action: 'nodeSelected',
