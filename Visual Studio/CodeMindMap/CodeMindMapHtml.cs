@@ -403,7 +403,11 @@ namespace CodeMindMap
 
         };
 
-        document.addEventListener('DOMContentLoaded', initMindMap);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initMindMap);
+        } else {
+            initMindMap();
+        }
     </script>
 </body>
 </html>";
