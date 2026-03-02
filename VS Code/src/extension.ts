@@ -746,7 +746,7 @@ export class CodeMindMapPanel {
         }
 
         /* Status indicator styles */
-        /* Root (30px padding) and level-1 (25px padding) already have enough room for the icon */
+        /* Root (45px horizontal padding) and level-1 (25px padding) already have enough room for the icon */
         .map-container me-tpc {
             position: relative;
         }
@@ -855,7 +855,7 @@ export class CodeMindMapPanel {
                                 node.data.status = 'in-progress';
                                 updateNodeStatus(node);
                                 vscode.postMessage({ action: 'mindMapOperation', operationName: 'updateNodeStatus' });
-                                document.querySelector('.map-container > .context-menu').hidden = true;
+                                document.querySelector('.map-container > .context-menu')?.hidden = true;
                             }
                         },
                         {
@@ -867,7 +867,7 @@ export class CodeMindMapPanel {
                                 node.data.status = 'completed';
                                 updateNodeStatus(node);
                                 vscode.postMessage({ action: 'mindMapOperation', operationName: 'updateNodeStatus' });
-                                document.querySelector('.map-container > .context-menu').hidden = true;
+                                document.querySelector('.map-container > .context-menu')?.hidden = true;
                             }
                         },
                         {
@@ -879,7 +879,7 @@ export class CodeMindMapPanel {
                                 delete node.data.status;
                                 updateNodeStatus(node);
                                 vscode.postMessage({ action: 'mindMapOperation', operationName: 'updateNodeStatus' });
-                                document.querySelector('.map-container > .context-menu').hidden = true;
+                                document.querySelector('.map-container > .context-menu')?.hidden = true;
                             }
                         },
                     ]
@@ -1140,10 +1140,14 @@ export class CodeMindMapPanel {
                 // as that would create an infinite loop via the linkDiv bus listener
             }
 
+            let scheduleRafHandle: number | null = null;
+            let scheduleTimerHandle: ReturnType<typeof setTimeout> | null = null;
             function scheduleApplyAllStatuses() {
                 if (!mind) return;
-                requestAnimationFrame(() => applyAllStatuses());
-                setTimeout(() => applyAllStatuses(), 50);
+                if (scheduleRafHandle !== null) cancelAnimationFrame(scheduleRafHandle);
+                if (scheduleTimerHandle !== null) clearTimeout(scheduleTimerHandle);
+                scheduleRafHandle = requestAnimationFrame(() => { applyAllStatuses(); scheduleRafHandle = null; });
+                scheduleTimerHandle = setTimeout(() => { applyAllStatuses(); scheduleTimerHandle = null; }, 50);
             }
 
             mind.bus.addListener('selectNode', node => {
