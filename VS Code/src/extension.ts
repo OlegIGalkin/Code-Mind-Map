@@ -1041,23 +1041,27 @@ export class CodeMindMapPanel {
                                     topic: 'space - Expand/collapse nodes',
                                     id: 'bd1bb2ac4bbab458',
                                 },
-                            ],
-                        },
-                        {
-                            topic: 'C - Toggle node status (In Progress, Completed)',
-                            id: 'bd1bb2ac4bbab460',
-                            children: [
                                 {
-                                    topic: 'Press C to cycle through status states',
-                                    id: 'bd1bb2ac4bbab461',
-                                },
-                                {
-                                    topic: 'Completed nodes show ✓ and appear faded',
-                                    id: 'bd1bb2ac4bbab462',
-                                },
-                                {
-                                    topic: 'In Progress nodes show ⟳ in orange',
-                                    id: 'bd1bb2ac4bbab463',
+                                    topic: 'c - Cycle node status: (none) → In Progress → Completed → (none)',
+                                    id: 'bd1bb2ac4bbab460',
+                                    children: [
+                                        {
+                                            topic: 'In Progress nodes show ⟳ in orange',
+                                            id: 'bd1bb2ac4bbab461',
+                                        },
+                                        {
+                                            topic: 'Completed nodes show ✓ with strikethrough text',
+                                            id: 'bd1bb2ac4bbab462',
+                                        },
+                                        {
+                                            topic: 'Right-click a node to set status directly from the context menu',
+                                            id: 'bd1bb2ac4bbab463',
+                                        },
+                                        {
+                                            topic: 'Status is saved automatically with the diagram',
+                                            id: 'bd1bb2ac4bbab464',
+                                        },
+                                    ],
                                 },
                             ],
                         },
