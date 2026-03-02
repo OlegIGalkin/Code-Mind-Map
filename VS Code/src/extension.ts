@@ -723,18 +723,6 @@ export class CodeMindMapPanel {
             color: #fff;
             font-size: 13px;
         }
-        .dev-badge {
-            margin-left: auto;
-            align-self: center;
-            padding: 2px 6px;
-            border: 1px solid #ff9800;
-            border-radius: 999px;
-            color: #ff9800;
-            font-size: 11px;
-            font-weight: bold;
-            letter-spacing: 0.6px;
-            text-transform: uppercase;
-        }
         .hidden {
             display: none !important;
         }
@@ -826,7 +814,6 @@ export class CodeMindMapPanel {
                 <span class="mm-icon" aria-label="Color palette">🎨</span>
                 <span class="mm-label">Toggle Color Scheme</span>
             </button>
-            <span class="dev-badge" title="Local development build">DEV</span>
         </div>
         <div id="map"></div>
     </div>

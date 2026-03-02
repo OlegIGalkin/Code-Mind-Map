@@ -34,6 +34,7 @@ See screenshots at [CodeMindMap.com](https://codemindmap.com/)
   - Fix: focus map element on node select so keyboard shortcuts work on first click.
   - Feature: save diagrams as .json with pretty printing, open accepts .json and .txt.
   - Feature: reopen diagram automatically after window reload.
+  - Node completion status: press `c` on any node to cycle through In Progress (⟳) and Completed (✓) states. Status is saved with the diagram and can also be set via right-click context menu.
 
 - **v1.19**
   - "Code node added" status bar notification.
