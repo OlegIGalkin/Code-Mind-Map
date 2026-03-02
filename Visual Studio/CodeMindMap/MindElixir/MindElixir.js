@@ -1711,7 +1711,7 @@ const rn = function(e, t, n) {
       const o = S(e);
       return o ? this.selectNode(o) : void 0;
     }
-    e.className = "selected", e.scrollIntoView({ block: "nearest", inline: "nearest" }), this.currentNode = e, t ? this.bus.fire("selectNewNode", e.nodeObj) : this.bus.fire("selectNode", e.nodeObj, n);
+    e.className = "selected", e.scrollIntoView({ block: "nearest", inline: "nearest" }), this.currentNode = e, this.map.focus(), t ? this.bus.fire("selectNewNode", e.nodeObj) : this.bus.fire("selectNode", e.nodeObj, n);
   }
 }, cn = function() {
   this.currentNode && (this.currentNode.className = ""), this.currentNode = null, this.bus.fire("unselectNode");
