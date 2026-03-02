@@ -28,20 +28,52 @@ namespace CodeMindMap
             margin: 0;
             padding: 0;
         }
-        /* Status indicator styles */ 
-        .node-completed {
-            opacity: 0.6;
+        /* Root node: match the same padding-to-font ratio as level-1 nodes.
+           Level-1 uses 8px/25px padding with 14px font (ratios 0.57v / 1.79h).
+           Root has 25px font, so target: 14px vertical / 45px horizontal. */
+        .map-container me-root me-tpc {
+            padding: 14px 45px !important;
+        }
+
+        /* Status indicator styles */
+        /* Root (45px horizontal padding) and level-1 (25px padding) already have enough room for the icon */
+        .map-container me-tpc {
+            position: relative;
+        }
+        /* Level-2+ nodes: always reserve icon space so text never shifts when status changes. */
+        .map-container me-children me-parent me-tpc {
+            padding-left: 20px;
+            box-sizing: border-box;
+        }
+        .map-container me-tpc[data-status=""completed""] {
             text-decoration: line-through;
         }
-        .node-in-progress::before {
-            content: '⟳ ';
-            color: #ff9800;
+        .map-container me-tpc[data-status=""completed""] > .text {
+            text-decoration: line-through !important;
+        }
+        .map-container me-tpc[data-status]::before {
+            position: absolute;
+            left: 2px; /* level-2+: within the 20px padding we add */
+            top: 50%;
+            transform: translateY(-50%);
+            width: 14px;
+            text-align: center;
             font-weight: bold;
         }
-        .node-completed::before {
-            content: '✓ ';
+        /* Center icon in the existing left padding for root (45px) and level-1 (25px) */
+        .map-container me-root me-tpc[data-status]::before {
+            left: 16px; /* (45px - 14px) / 2 */
+        }
+        .map-container me-main > me-wrapper > me-parent > me-tpc[data-status]::before {
+            left: 6px; /* (25px - 14px) / 2 */
+        }
+        .map-container me-tpc[data-status=""in-progress""]::before {
+            content: '⟳';
+            color: #ff9800;
+        }
+        .map-container me-tpc[data-status=""completed""]::before {
+            content: '✓';
             color: #4caf50;
-            font-weight: bold;
         }
     </style>
 </head>
@@ -52,12 +84,55 @@ namespace CodeMindMap
         import MindElixir from ""http://codemindmap.vsext/MindElixir.js"";
 
         let mind, themeManager;
+        let linkDivDebounceTimer = null;
+        let scheduleRafHandle = null;
+        let scheduleTimerHandle = null;
 
         function initMindMap() {
             const options = {
                 el: '#map',
                 allowUndo: true,
                 toolBar: true,
+                contextMenu: {
+                    extend: [
+                        {
+                            name: '⟳ In Progress',
+                            onclick: () => {
+                                const node = mind.currentNode?.nodeObj;
+                                if (!node) return;
+                                node.data = node.data || {};
+                                node.data.status = 'in-progress';
+                                updateNodeStatus(node);
+                                window.chrome.webview.postMessage({ action: 'mindMapOperation', operationName: 'updateNodeStatus' });
+                                const cm = document.querySelector('.map-container > .context-menu'); if (cm) cm.hidden = true;
+                            }
+                        },
+                        {
+                            name: '✓ Completed',
+                            onclick: () => {
+                                const node = mind.currentNode?.nodeObj;
+                                if (!node) return;
+                                node.data = node.data || {};
+                                node.data.status = 'completed';
+                                updateNodeStatus(node);
+                                window.chrome.webview.postMessage({ action: 'mindMapOperation', operationName: 'updateNodeStatus' });
+                                const cm = document.querySelector('.map-container > .context-menu'); if (cm) cm.hidden = true;
+                            }
+                        },
+                        {
+                            name: '✕ Clear Status',
+                            onclick: () => {
+                                const node = mind.currentNode?.nodeObj;
+                                if (!node) return;
+                                node.data = node.data || {};
+                                delete node.data.status;
+                                updateNodeStatus(node);
+                                window.chrome.webview.postMessage({ action: 'mindMapOperation', operationName: 'updateNodeStatus' });
+                                const cm = document.querySelector('.map-container > .context-menu'); if (cm) cm.hidden = true;
+                            }
+                        },
+                    ]
+                },
                 view: {
                     beforeSelect(el, node) {
                         mind.currentNode = node;
@@ -200,23 +275,27 @@ namespace CodeMindMap
                                     topic: 'space - Expand/collapse nodes',
                                     id: 'bd1bb2ac4bbab458',
                                 },
-                            ],
-                        },
-                        {
-                            topic: 'C - Toggle node status (Not Started, In Progress, Completed)',
-                            id: 'bd1bb2ac4bbab460',
-                            children: [
                                 {
-                                    topic: 'Press C to cycle through status states',
-                                    id: 'bd1bb2ac4bbab461',
-                                },
-                                {
-                                    topic: 'Completed nodes show ✓ and appear faded',
-                                    id: 'bd1bb2ac4bbab462',
-                                },
-                                {
-                                    topic: 'In Progress nodes show ⟳ in orange',
-                                    id: 'bd1bb2ac4bbab463',
+                                    topic: 'c - Cycle node status: (none) → In Progress → Completed → (none)',
+                                    id: 'bd1bb2ac4bbab460',
+                                    children: [
+                                        {
+                                            topic: 'In Progress nodes show ⟳ in orange',
+                                            id: 'bd1bb2ac4bbab461',
+                                        },
+                                        {
+                                            topic: 'Completed nodes show ✓ with strikethrough text',
+                                            id: 'bd1bb2ac4bbab462',
+                                        },
+                                        {
+                                            topic: 'Right-click a node to set status directly from the context menu',
+                                            id: 'bd1bb2ac4bbab463',
+                                        },
+                                        {
+                                            topic: 'Status is saved automatically with the diagram',
+                                            id: 'bd1bb2ac4bbab464',
+                                        },
+                                    ],
                                 },
                             ],
                         },
@@ -240,25 +319,58 @@ namespace CodeMindMap
                 };
             });
             
+            scheduleApplyAllStatuses();
             // Helper function to update node visual status
             function updateNodeStatus(nodeObj) {
                 if (!nodeObj || !nodeObj.id) return;
                 const nodeElement = MindElixir.E(nodeObj.id);
                 if (!nodeElement) return;
-                
+
                 const status = nodeObj.data?.status || null;
-                const domEl = nodeElement.getEl?.();
+                const domEl = nodeElement.getEl?.() || nodeElement;
                 if (!domEl) return;
-                
-                // Remove all status classes
-                domEl.classList.remove('node-completed', 'node-in-progress');
-                
-                // Apply new status class
-                if (status === 'completed') {
-                    domEl.classList.add('node-completed');
-                } else if (status === 'in-progress') {
-                    domEl.classList.add('node-in-progress');
+
+                const topicEl = (() => {
+                    if (domEl.tagName === 'ME-TPC') return domEl;
+                    const byQuery = domEl.querySelector?.('me-tpc');
+                    if (byQuery) return byQuery;
+                    const byTag = domEl.getElementsByTagName?.('me-tpc')?.[0];
+                    if (byTag) return byTag;
+                    return domEl;
+                })();
+
+                if (!topicEl) return;
+
+                if (!status) {
+                    topicEl.removeAttribute('data-status');
+                    return;
                 }
+
+                topicEl.setAttribute('data-status', status);
+            }
+
+            function applyAllStatuses() {
+                const root = mind?.nodeData;
+                if (!root) return;
+                const stack = [root];
+                while (stack.length > 0) {
+                    const node = stack.pop();
+                    if (!node) continue;
+                    updateNodeStatus(node);
+                    if (Array.isArray(node.children)) {
+                        for (const child of node.children) {
+                            stack.push(child);
+                        }
+                    }
+                }
+            }
+
+            function scheduleApplyAllStatuses() {
+                if (!mind) return;
+                if (scheduleRafHandle !== null) cancelAnimationFrame(scheduleRafHandle);
+                if (scheduleTimerHandle !== null) clearTimeout(scheduleTimerHandle);
+                scheduleRafHandle = requestAnimationFrame(() => { applyAllStatuses(); scheduleRafHandle = null; });
+                scheduleTimerHandle = setTimeout(() => { applyAllStatuses(); scheduleTimerHandle = null; }, 50);
             }
             
             mind.bus.addListener('selectNode', node => {
@@ -268,13 +380,22 @@ namespace CodeMindMap
                     nodeTopic: node.topic,
                     nodeData: node.data,
                 });
+                scheduleApplyAllStatuses();
             });
 
-            mind.bus.addListener('operation', operation  => {
-				window.chrome.webview.postMessage({
-						action: 'mindMapOperation',
-						operationName: operation.name,
-					});
+            // Debounced linkDiv listener: MindElixir fires linkDiv after every layout pass.
+            // Wait for 50ms of silence before applying statuses so we run after the final DOM state.
+            mind.bus.addListener('linkDiv', () => {
+                clearTimeout(linkDivDebounceTimer);
+                linkDivDebounceTimer = setTimeout(applyAllStatuses, 50);
+            });
+
+            mind.bus.addListener('operation', operation => {
+                window.chrome.webview.postMessage({
+                    action: 'mindMapOperation',
+                    operationName: operation.name,
+                });
+                scheduleApplyAllStatuses();
             });
 
             document.addEventListener('click', (e) => {
@@ -311,11 +432,14 @@ namespace CodeMindMap
                     }
                 }
                 else if ((e.key === 'c' || e.key === 'C') && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+                    // Skip if MindElixir's inline editor is open
+                    if (document.getElementById('input-box')) return;
                     e.preventDefault();
                     const currentNode = mind.currentNode?.nodeObj;
-                    if (!currentNode || !currentNode.data) return;
-                    
-                    // Cycle through status: (none) -> in-progress -> completed -> (none)
+                    if (!currentNode) return;
+                    currentNode.data = currentNode.data || {};
+
+                    // Cycle: (none) -> in-progress -> completed -> (none)
                     const statuses = [null, 'in-progress', 'completed'];
                     const currentStatus = currentNode.data.status || null;
                     const currentIndex = statuses.indexOf(currentStatus);
@@ -325,9 +449,9 @@ namespace CodeMindMap
                     } else {
                         currentNode.data.status = next;
                     }
-                    
-                    // Update visual appearance
+
                     updateNodeStatus(currentNode);
+                    window.chrome.webview.postMessage({ action: 'mindMapOperation', operationName: 'updateNodeStatus' });
                 }
             });
 
@@ -441,10 +565,11 @@ namespace CodeMindMap
                 mind.refresh(mindData);
 
                 const dataThemeName = getThemeName(mindData);
-
                 if (dataThemeName != '' && themeManager.contains(dataThemeName) && dataThemeName != mind.theme?.name) {
                     mind.changeTheme(themeManager.getTheme(dataThemeName));
                 }
+                // Statuses are applied via the debounced linkDiv bus listener
+                // which fires after MindElixir's layout settles.
                 
                 return { success: true, error: """" };
             } catch (e) {
