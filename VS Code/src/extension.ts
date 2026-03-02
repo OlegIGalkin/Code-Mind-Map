@@ -1145,8 +1145,8 @@ export class CodeMindMapPanel {
 
         };
 
-        // Add event listeners for all buttons
-        window.addEventListener('DOMContentLoaded', () => {
+        // Add event listeners for all buttons, then initialize the mind map
+        function setupUI() {
             // Open Dev Tools button
             const devBtn = document.getElementById('openDevToolsBtn');
             if (devBtn) {
@@ -1204,7 +1204,15 @@ export class CodeMindMapPanel {
             }
 
             initMindMap();
-        });
+        }
+
+        // Handle both early and late execution: type="module" scripts are deferred,
+        // so DOMContentLoaded may have already fired by the time this runs.
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupUI);
+        } else {
+            setupUI();
+        }
 
         // Handle messages from the extension
         window.addEventListener('message', event => {
