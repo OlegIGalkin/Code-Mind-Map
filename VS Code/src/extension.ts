@@ -143,13 +143,26 @@ export class CodeMindMapPanel {
         CodeMindMapPanel.CurrentPanel = new CodeMindMapPanel(panel, extensionUri);
         CodeMindMapPanel._context?.workspaceState.update(CodeMindMapPanel.PANEL_OPEN_KEY, true);
 
-        // Resolve and store the save path; the actual load happens when the
-        // webview signals 'webviewReady' (so mind is guaranteed to be initialized).
+        // Try to load last save path from workspace settings
         const config = vscode.workspace.getConfiguration('codeMindMap');
         let lastSavePath = config.get<string>('autoSavePath');
         if (lastSavePath) {
             lastSavePath = toAbsoluteFromWorkspace(lastSavePath);
             CodeMindMapPanel._lastSavePath = vscode.Uri.file(lastSavePath);
+            // Load the mind map from the file. The webview may not be ready yet;
+            // the webview buffers this message and applies it once mind is initialized.
+            vscode.workspace.fs.readFile(CodeMindMapPanel._lastSavePath).then(
+                fileContent => {
+                    const data = new TextDecoder().decode(fileContent);
+                    panel.webview.postMessage({
+                        action: 'importMindMapData',
+                        data: data
+                    });
+                },
+                error => {
+                    vscode.window.showErrorMessage('Failed to load mind map: ' + error);
+                }
+            );
         }
 
     }
@@ -223,23 +236,6 @@ export class CodeMindMapPanel {
         this._panel.webview.onDidReceiveMessage(
             async message => {
                 switch (message.action) {
-                    case 'webviewReady':
-                        if (CodeMindMapPanel._lastSavePath) {
-                            vscode.workspace.fs.readFile(CodeMindMapPanel._lastSavePath).then(
-                                fileContent => {
-                                    const data = new TextDecoder().decode(fileContent);
-                                    this._panel.webview.postMessage({
-                                        action: 'importMindMapData',
-                                        data: data
-                                    });
-                                },
-                                error => {
-                                    vscode.window.showErrorMessage('Failed to load mind map: ' + error);
-                                }
-                            );
-                        }
-                        break;
-
                     case 'openDevTools':
                         vscode.commands.executeCommand('workbench.action.webview.openDeveloperTools');
                         break;
@@ -779,6 +775,7 @@ export class CodeMindMapPanel {
         const vscode = acquireVsCodeApi();
 
         let mind, data, themeManager;
+        let pendingImportData = null;
 
         function initMindMap() {
             const options = {
@@ -1018,7 +1015,10 @@ export class CodeMindMapPanel {
                 }
             }, { passive: false });
 
-            vscode.postMessage({ action: 'webviewReady' });
+            if (pendingImportData) {
+                window.importData(pendingImportData);
+                pendingImportData = null;
+            }
         }
 
         window.addChildNode = function(topic = 'New Child Node', codeInfoObject) {
@@ -1245,6 +1245,8 @@ export class CodeMindMapPanel {
                 case 'importMindMapData':
                     if (mind) {
                         window.importData(message.data);
+                    } else {
+                        pendingImportData = message.data;
                     }
                     break;
                 case 'resetMindMap':
