@@ -825,6 +825,8 @@ export class CodeMindMapPanel {
         let mind, data, themeManager;
         let pendingImport = null; // stores importMindMapData payload received before mind is ready
         let linkDivDebounceTimer = null; // debounce timer for the linkDiv bus event
+        let scheduleRafHandle = null;
+        let scheduleTimerHandle = null;
 
         function initMindMap() {
             const options = {
@@ -1127,8 +1129,6 @@ export class CodeMindMapPanel {
                 // as that would create an infinite loop via the linkDiv bus listener
             }
 
-            let scheduleRafHandle: number | null = null;
-            let scheduleTimerHandle: ReturnType<typeof setTimeout> | null = null;
             function scheduleApplyAllStatuses() {
                 if (!mind) return;
                 if (scheduleRafHandle !== null) cancelAnimationFrame(scheduleRafHandle);
