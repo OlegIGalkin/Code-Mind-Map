@@ -34,7 +34,7 @@ namespace CodeMindMap
             }
         }
 
-        public const string DefaultDataFileName = "CodeMindMap.txt";
+        public const string DefaultDataFileName = "CodeMindMap.json";
 
         public string Id { get; set; }
         public string SolutionFilePath { get; set; }

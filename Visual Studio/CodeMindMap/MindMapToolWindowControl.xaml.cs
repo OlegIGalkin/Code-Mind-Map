@@ -744,8 +744,8 @@ namespace CodeMindMap
             Microsoft.Win32.SaveFileDialog dialog = new Microsoft.Win32.SaveFileDialog
             {
                 FileName = SolutionMindMapData.DefaultDataFileName,
-                DefaultExt = ".txt",
-                Filter = "Text documents (.txt)|*.txt",
+                DefaultExt = ".json",
+                Filter = "JSON files (.json)|*.json",
                 InitialDirectory = InitialFileDialogDir,
                 Title = SaveDataButton.ToolTip.ToString()
             };
@@ -828,8 +828,8 @@ namespace CodeMindMap
             var dialog = new Microsoft.Win32.OpenFileDialog
             {
                 FileName = SolutionMindMapData.DefaultDataFileName,
-                DefaultExt = ".txt",
-                Filter = "Text documents (.txt)|*.txt",
+                DefaultExt = ".json",
+                Filter = "Mind Map files (.json, .txt)|*.json;*.txt",
                 InitialDirectory = InitialFileDialogDir,
                 Title = LoadDataButton.ToolTip.ToString()
             };

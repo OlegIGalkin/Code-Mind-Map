@@ -301,10 +301,10 @@ export class CodeMindMapPanel {
                     case 'saveMindMap':
                         const saveUri = await vscode.window.showSaveDialog({
                             filters: {
-                                'Text files': ['txt']
+                                'JSON files': ['json']
                             },
                             title: 'Save Mind Map As',
-                            defaultUri: CodeMindMapPanel._lastSavePath || vscode.Uri.file('CodeMindMap.txt')
+                            defaultUri: CodeMindMapPanel._lastSavePath || vscode.Uri.file('CodeMindMap.json')
                         });
 
                         if (saveUri) {
@@ -337,11 +337,11 @@ export class CodeMindMapPanel {
                     case 'loadMindMap':
                         const openUri = await vscode.window.showOpenDialog({
                             filters: {
-                                'Text files': ['txt']
+                                'Mind Map files': ['json', 'txt']
                             },
                             title: 'Load Mind Map',
                             canSelectMany: false,
-                            defaultUri: CodeMindMapPanel._lastSavePath || vscode.Uri.file('CodeMindMap.txt')
+                            defaultUri: CodeMindMapPanel._lastSavePath || vscode.Uri.file('CodeMindMap.json')
                         });
 
                         if (openUri && openUri[0]) {
