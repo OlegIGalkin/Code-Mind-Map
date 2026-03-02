@@ -246,7 +246,7 @@ namespace CodeMindMap
                 const nodeElement = MindElixir.E(nodeObj.id);
                 if (!nodeElement) return;
                 
-                const status = nodeObj.data?.status || 'not-started';
+                const status = nodeObj.data?.status || null;
                 const domEl = nodeElement.getEl?.();
                 if (!domEl) return;
                 
@@ -315,12 +315,16 @@ namespace CodeMindMap
                     const currentNode = mind.currentNode?.nodeObj;
                     if (!currentNode || !currentNode.data) return;
                     
-                    // Cycle through status: not-started -> in-progress -> completed -> not-started
-                    const statuses = ['not-started', 'in-progress', 'completed'];
-                    const currentStatus = currentNode.data.status || 'not-started';
+                    // Cycle through status: (none) -> in-progress -> completed -> (none)
+                    const statuses = [null, 'in-progress', 'completed'];
+                    const currentStatus = currentNode.data.status || null;
                     const currentIndex = statuses.indexOf(currentStatus);
-                    const nextIndex = (currentIndex + 1) % statuses.length;
-                    currentNode.data.status = statuses[nextIndex];
+                    const next = statuses[(currentIndex + 1) % statuses.length];
+                    if (next === null) {
+                        delete currentNode.data.status;
+                    } else {
+                        currentNode.data.status = next;
+                    }
                     
                     // Update visual appearance
                     updateNodeStatus(currentNode);
@@ -356,7 +360,7 @@ namespace CodeMindMap
             }
             
             const { fileName, filePath, topLine } = codeInfoObject;
-            const codeInfo = { fileName, filePath, topLine, status: 'not-started' };
+            const codeInfo = { fileName, filePath, topLine };
 
             const childData = {
                 id: 'child_' + Date.now(),
