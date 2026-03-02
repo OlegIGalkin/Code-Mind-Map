@@ -307,7 +307,7 @@ namespace CodeMindMap
         window.exportData = function() {
             if (!mind) return { success: false, error: ""Mind map not initialized"" };
             try {
-                return mind.getDataString();
+                return JSON.stringify(JSON.parse(mind.getDataString()), null, 2);
             } catch (e) {
                 console.error(""Error exporting data:"", e);
                 return { success: false, error: e.message };
