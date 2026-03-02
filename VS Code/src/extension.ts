@@ -860,7 +860,7 @@ export class CodeMindMapPanel {
                                 node.data.status = 'in-progress';
                                 updateNodeStatus(node);
                                 vscode.postMessage({ action: 'mindMapOperation', operationName: 'updateNodeStatus' });
-                                document.querySelector('.map-container > .context-menu')?.hidden = true;
+                                const cm = document.querySelector('.map-container > .context-menu'); if (cm) cm.hidden = true;
                             }
                         },
                         {
@@ -872,7 +872,7 @@ export class CodeMindMapPanel {
                                 node.data.status = 'completed';
                                 updateNodeStatus(node);
                                 vscode.postMessage({ action: 'mindMapOperation', operationName: 'updateNodeStatus' });
-                                document.querySelector('.map-container > .context-menu')?.hidden = true;
+                                const cm = document.querySelector('.map-container > .context-menu'); if (cm) cm.hidden = true;
                             }
                         },
                         {
@@ -884,7 +884,7 @@ export class CodeMindMapPanel {
                                 delete node.data.status;
                                 updateNodeStatus(node);
                                 vscode.postMessage({ action: 'mindMapOperation', operationName: 'updateNodeStatus' });
-                                document.querySelector('.map-container > .context-menu')?.hidden = true;
+                                const cm = document.querySelector('.map-container > .context-menu'); if (cm) cm.hidden = true;
                             }
                         },
                     ]
