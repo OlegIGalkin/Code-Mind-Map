@@ -37,6 +37,8 @@ function isPathRelative(rel: string) {
 }
 
 export function activate(context: vscode.ExtensionContext) {
+    CodeMindMapPanel._context = context;
+
     context.subscriptions.push(
         vscode.commands.registerCommand('codeMindMap.openPanel', () => {
             CodeMindMapPanel.createOrShow(context.extensionUri);
@@ -78,6 +80,11 @@ export function activate(context: vscode.ExtensionContext) {
             CodeMindMapPanel.CurrentPanel?.addCodeToNode(codeToAdd, nodeData);
         })
     );
+
+    // Reopen the diagram if it was open before the last reload
+    if (context.workspaceState.get<boolean>(CodeMindMapPanel.PANEL_OPEN_KEY)) {
+        CodeMindMapPanel.createOrShow(context.extensionUri);
+    }
 }
 
 export function deactivate() {}
@@ -85,6 +92,8 @@ export function deactivate() {}
 export class CodeMindMapPanel {
     private static _lastSavePath: vscode.Uri | undefined;
     public static CurrentPanel: CodeMindMapPanel | undefined;
+    public static _context: vscode.ExtensionContext | undefined;
+    public static readonly PANEL_OPEN_KEY = 'panelWasOpen';
     private readonly _panel: vscode.WebviewPanel;
     private readonly _extensionUri: vscode.Uri;
     private _disposables: vscode.Disposable[] = [];
@@ -132,6 +141,7 @@ export class CodeMindMapPanel {
         );
 
         CodeMindMapPanel.CurrentPanel = new CodeMindMapPanel(panel, extensionUri);
+        CodeMindMapPanel._context?.workspaceState.update(CodeMindMapPanel.PANEL_OPEN_KEY, true);
 
         // Try to load last save path from workspace settings
         const config = vscode.workspace.getConfiguration('codeMindMap');
@@ -643,6 +653,7 @@ export class CodeMindMapPanel {
 
     public dispose() {
         CodeMindMapPanel.CurrentPanel = undefined;
+        CodeMindMapPanel._context?.workspaceState.update(CodeMindMapPanel.PANEL_OPEN_KEY, false);
         this._panel.dispose();
         while (this._disposables.length) {
             const x = this._disposables.pop();

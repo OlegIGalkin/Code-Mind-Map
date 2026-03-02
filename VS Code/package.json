@@ -35,6 +35,7 @@
   "qna": "marketplace",
   "pricing": "Free",
   "activationEvents": [
+    "onStartupFinished",
     "onCommand:codeMindMap.openPanel",
     "onCommand:codeMindMap.addCodeToNode"
   ],
