@@ -359,6 +359,12 @@ namespace CodeMindMap
 
                 const mindData = JSON.parse(mindDataString);
 
+                // mind.refresh() does not restore direction (unlike mind.init()),
+                // so apply it manually before calling refresh so layout() picks it up.
+                if (typeof mindData.direction === 'number') {
+                    mind.direction = mindData.direction;
+                }
+
                 mind.refresh(mindData);
 
                 const dataThemeName = getThemeName(mindData);
