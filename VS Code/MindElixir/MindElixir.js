@@ -341,6 +341,8 @@ const ut = function(e) {
       if (s.shiftKey)
         return;
       s.preventDefault(), t.blur(), this.map.focus();
+    } else if (i === "Escape") {
+      s.preventDefault(), t.blur(), this.selectNode(e);
     }
   }), t.addEventListener("blur", () => {
     var r;
