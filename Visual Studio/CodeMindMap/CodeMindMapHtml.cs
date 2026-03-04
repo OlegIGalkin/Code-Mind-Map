@@ -196,6 +196,16 @@ namespace CodeMindMap
 
             mind = new MindElixir(options);
             mind.init(data);
+
+            // Intercept direction-change methods so autosave is triggered when the
+            // user switches between left tree, right tree, and flower (side) views.
+            ['initLeft', 'initRight', 'initSide'].forEach(method => {
+                const original = mind[method].bind(mind);
+                mind[method] = function() {
+                    original();
+                    window.chrome.webview.postMessage({ action: 'mindMapOperation', operationName: 'changeDirection' });
+                };
+            });
             
             mind.bus.addListener('selectNode', node => {
                 window.chrome.webview.postMessage({
@@ -349,6 +359,12 @@ namespace CodeMindMap
 
                 const mindData = JSON.parse(mindDataString);
 
+                // mind.refresh() does not restore direction (unlike mind.init()),
+                // so apply it manually before calling refresh so layout() picks it up.
+                if (typeof mindData.direction === 'number') {
+                    mind.direction = mindData.direction;
+                }
+
                 mind.refresh(mindData);
 
                 const dataThemeName = getThemeName(mindData);
@@ -387,7 +403,11 @@ namespace CodeMindMap
 
         };
 
-        document.addEventListener('DOMContentLoaded', initMindMap);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initMindMap);
+        } else {
+            initMindMap();
+        }
     </script>
 </body>
 </html>";

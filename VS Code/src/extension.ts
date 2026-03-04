@@ -763,6 +763,7 @@ export class CodeMindMapPanel {
         const vscode = acquireVsCodeApi();
 
         let mind, data, themeManager;
+        let pendingImport = null; // stores importMindMapData payload received before mind is ready
 
         function initMindMap() {
             const options = {
@@ -938,6 +939,22 @@ export class CodeMindMapPanel {
             mind = new MindElixir(options);
             mind.init(data);
 
+            // Apply any import that arrived before mind was ready
+            if (pendingImport !== null) {
+                window.importData(pendingImport);
+                pendingImport = null;
+            }
+
+            // Intercept direction-change methods so autosave is triggered when the
+            // user switches between left tree, right tree, and flower (side) views.
+            ['initLeft', 'initRight', 'initSide'].forEach(method => {
+                const original = mind[method].bind(mind);
+                mind[method] = function() {
+                    original();
+                    vscode.postMessage({ action: 'mindMapOperation', operationName: 'changeDirection' });
+                };
+            });
+
             mind.bus.addListener('selectNode', node => {
                 vscode.postMessage({
                     action: 'nodeSelected',
@@ -1083,6 +1100,12 @@ export class CodeMindMapPanel {
 
                 const mindData = JSON.parse(mindDataString);
 
+                // mind.refresh() does not restore direction (unlike mind.init()),
+                // so apply it manually before calling refresh so layout() picks it up.
+                if (typeof mindData.direction === 'number') {
+                    mind.direction = mindData.direction;
+                }
+
                 mind.refresh(mindData);
 
                 const dataThemeName = getThemeName(mindData);
@@ -1122,8 +1145,8 @@ export class CodeMindMapPanel {
 
         };
 
-        // Add event listeners for all buttons
-        window.addEventListener('DOMContentLoaded', () => {
+        // Add event listeners for all buttons, then initialize the mind map
+        function setupUI() {
             // Open Dev Tools button
             const devBtn = document.getElementById('openDevToolsBtn');
             if (devBtn) {
@@ -1181,7 +1204,15 @@ export class CodeMindMapPanel {
             }
 
             initMindMap();
-        });
+        }
+
+        // Handle both early and late execution: type="module" scripts are deferred,
+        // so DOMContentLoaded may have already fired by the time this runs.
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupUI);
+        } else {
+            setupUI();
+        }
 
         // Handle messages from the extension
         window.addEventListener('message', event => {
@@ -1227,6 +1258,8 @@ export class CodeMindMapPanel {
                 case 'importMindMapData':
                     if (mind) {
                         window.importData(message.data);
+                    } else {
+                        pendingImport = message.data;
                     }
                     break;
                 case 'resetMindMap':
