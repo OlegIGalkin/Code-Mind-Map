@@ -37,6 +37,8 @@ function isPathRelative(rel: string) {
 }
 
 export function activate(context: vscode.ExtensionContext) {
+    CodeMindMapPanel._context = context;
+
     context.subscriptions.push(
         vscode.commands.registerCommand('codeMindMap.openPanel', () => {
             CodeMindMapPanel.createOrShow(context.extensionUri);
@@ -78,6 +80,11 @@ export function activate(context: vscode.ExtensionContext) {
             CodeMindMapPanel.CurrentPanel?.addCodeToNode(codeToAdd, nodeData);
         })
     );
+
+    // Reopen the diagram if it was open before the last reload
+    if (context.workspaceState.get<boolean>(CodeMindMapPanel.PANEL_OPEN_KEY)) {
+        CodeMindMapPanel.createOrShow(context.extensionUri);
+    }
 }
 
 export function deactivate() {}
@@ -85,6 +92,8 @@ export function deactivate() {}
 export class CodeMindMapPanel {
     private static _lastSavePath: vscode.Uri | undefined;
     public static CurrentPanel: CodeMindMapPanel | undefined;
+    public static _context: vscode.ExtensionContext | undefined;
+    public static readonly PANEL_OPEN_KEY = 'panelWasOpen';
     private readonly _panel: vscode.WebviewPanel;
     private readonly _extensionUri: vscode.Uri;
     private _disposables: vscode.Disposable[] = [];
@@ -132,6 +141,7 @@ export class CodeMindMapPanel {
         );
 
         CodeMindMapPanel.CurrentPanel = new CodeMindMapPanel(panel, extensionUri);
+        CodeMindMapPanel._context?.workspaceState.update(CodeMindMapPanel.PANEL_OPEN_KEY, true);
 
         // Try to load last save path from workspace settings
         const config = vscode.workspace.getConfiguration('codeMindMap');
@@ -139,7 +149,8 @@ export class CodeMindMapPanel {
         if (lastSavePath) {
             lastSavePath = toAbsoluteFromWorkspace(lastSavePath);
             CodeMindMapPanel._lastSavePath = vscode.Uri.file(lastSavePath);
-            // Load the mind map from the file
+            // Load the mind map from the file. The webview may not be ready yet;
+            // the webview buffers this message and applies it once mind is initialized.
             vscode.workspace.fs.readFile(CodeMindMapPanel._lastSavePath).then(
                 fileContent => {
                     const data = new TextDecoder().decode(fileContent);
@@ -643,6 +654,7 @@ export class CodeMindMapPanel {
 
     public dispose() {
         CodeMindMapPanel.CurrentPanel = undefined;
+        CodeMindMapPanel._context?.workspaceState.update(CodeMindMapPanel.PANEL_OPEN_KEY, false);
         this._panel.dispose();
         while (this._disposables.length) {
             const x = this._disposables.pop();
@@ -763,7 +775,7 @@ export class CodeMindMapPanel {
         const vscode = acquireVsCodeApi();
 
         let mind, data, themeManager;
-        let pendingImport = null; // stores importMindMapData payload received before mind is ready
+        let pendingImportData = null; // stores importMindMapData payload received before mind is ready
 
         function initMindMap() {
             const options = {
@@ -940,9 +952,9 @@ export class CodeMindMapPanel {
             mind.init(data);
 
             // Apply any import that arrived before mind was ready
-            if (pendingImport !== null) {
-                window.importData(pendingImport);
-                pendingImport = null;
+            if (pendingImportData !== null) {
+                window.importData(pendingImportData);
+                pendingImportData = null;
             }
 
             // Intercept direction-change methods so autosave is triggered when the
@@ -1259,7 +1271,7 @@ export class CodeMindMapPanel {
                     if (mind) {
                         window.importData(message.data);
                     } else {
-                        pendingImport = message.data;
+                        pendingImportData = message.data;
                     }
                     break;
                 case 'resetMindMap':

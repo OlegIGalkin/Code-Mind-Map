@@ -138,6 +138,7 @@ namespace CodeMindMap
 
             if (!_currentSolutionMindMapData.IsEmpty)
             {
+                await ShowToolWindowAsync(typeof(MindMapToolWindow), 0, true, DisposalToken);
                 await LoadMindMapData();
                 return;
             }
