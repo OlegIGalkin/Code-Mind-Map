@@ -312,10 +312,10 @@ export class CodeMindMapPanel {
                     case 'saveMindMap':
                         const saveUri = await vscode.window.showSaveDialog({
                             filters: {
-                                'Text files': ['txt']
+                                'JSON files': ['json']
                             },
                             title: 'Save Mind Map As',
-                            defaultUri: CodeMindMapPanel._lastSavePath || vscode.Uri.file('CodeMindMap.txt')
+                            defaultUri: CodeMindMapPanel._lastSavePath || vscode.Uri.file('CodeMindMap.json')
                         });
 
                         if (saveUri) {
@@ -348,11 +348,11 @@ export class CodeMindMapPanel {
                     case 'loadMindMap':
                         const openUri = await vscode.window.showOpenDialog({
                             filters: {
-                                'Text files': ['txt']
+                                'Mind Map files': ['json', 'txt']
                             },
                             title: 'Load Mind Map',
                             canSelectMany: false,
-                            defaultUri: CodeMindMapPanel._lastSavePath || vscode.Uri.file('CodeMindMap.txt')
+                            defaultUri: CodeMindMapPanel._lastSavePath || vscode.Uri.file('CodeMindMap.json')
                         });
 
                         if (openUri && openUri[0]) {
@@ -775,7 +775,7 @@ export class CodeMindMapPanel {
         const vscode = acquireVsCodeApi();
 
         let mind, data, themeManager;
-        let pendingImportData = null;
+        let pendingImportData = null; // stores importMindMapData payload received before mind is ready
 
         function initMindMap() {
             const options = {
@@ -951,6 +951,22 @@ export class CodeMindMapPanel {
             mind = new MindElixir(options);
             mind.init(data);
 
+            // Apply any import that arrived before mind was ready
+            if (pendingImportData !== null) {
+                window.importData(pendingImportData);
+                pendingImportData = null;
+            }
+
+            // Intercept direction-change methods so autosave is triggered when the
+            // user switches between left tree, right tree, and flower (side) views.
+            ['initLeft', 'initRight', 'initSide'].forEach(method => {
+                const original = mind[method].bind(mind);
+                mind[method] = function() {
+                    original();
+                    vscode.postMessage({ action: 'mindMapOperation', operationName: 'changeDirection' });
+                };
+            });
+
             mind.bus.addListener('selectNode', node => {
                 vscode.postMessage({
                     action: 'nodeSelected',
@@ -1014,11 +1030,6 @@ export class CodeMindMapPanel {
                         }
                 }
             }, { passive: false });
-
-            if (pendingImportData) {
-                window.importData(pendingImportData);
-                pendingImportData = null;
-            }
         }
 
         window.addChildNode = function(topic = 'New Child Node', codeInfoObject) {
@@ -1058,7 +1069,7 @@ export class CodeMindMapPanel {
         window.exportData = function() {
             if (!mind) return { success: false, error: 'Mind map not initialized' };
             try {
-                return mind.getDataString();
+                return JSON.stringify(JSON.parse(mind.getDataString()), null, 2);
             } catch (e) {
                 console.error('Error exporting data:', e);
                 return { success: false, error: e.message };
@@ -1101,6 +1112,12 @@ export class CodeMindMapPanel {
 
                 const mindData = JSON.parse(mindDataString);
 
+                // mind.refresh() does not restore direction (unlike mind.init()),
+                // so apply it manually before calling refresh so layout() picks it up.
+                if (typeof mindData.direction === 'number') {
+                    mind.direction = mindData.direction;
+                }
+
                 mind.refresh(mindData);
 
                 const dataThemeName = getThemeName(mindData);
@@ -1140,8 +1157,8 @@ export class CodeMindMapPanel {
 
         };
 
-        // Add event listeners for all buttons
-        window.addEventListener('DOMContentLoaded', () => {
+        // Add event listeners for all buttons, then initialize the mind map
+        function setupUI() {
             // Open Dev Tools button
             const devBtn = document.getElementById('openDevToolsBtn');
             if (devBtn) {
@@ -1199,7 +1216,15 @@ export class CodeMindMapPanel {
             }
 
             initMindMap();
-        });
+        }
+
+        // Handle both early and late execution: type="module" scripts are deferred,
+        // so DOMContentLoaded may have already fired by the time this runs.
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupUI);
+        } else {
+            setupUI();
+        }
 
         // Handle messages from the extension
         window.addEventListener('message', event => {
