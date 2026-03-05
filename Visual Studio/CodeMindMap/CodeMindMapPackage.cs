@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Events;
 using Microsoft.VisualStudio.Shell.Interop;
 using System;
+using System.Data.Common;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -34,6 +35,7 @@ namespace CodeMindMap
     [Guid(CodeMindMapPackage.PackageGuidString)]
     [ProvideMenuResource("Menus.ctmenu", 1)]
     [ProvideToolWindow(typeof(MindMapToolWindow), Style = VsDockStyle.Tabbed, DockedWidth = 300, Window = "DocumentWell", Orientation = ToolWindowOrientation.Bottom)]
+    [ProvideOptionPage(typeof(OptionsProvider.GeneralOptions), "Code Mind Map", "General", 0, 0, true, SupportsProfiles = true)]
     public sealed class CodeMindMapPackage : AsyncPackage
     {
         /// <summary>
@@ -138,8 +140,13 @@ namespace CodeMindMap
 
             if (!_currentSolutionMindMapData.IsEmpty)
             {
-                await ShowToolWindowAsync(typeof(MindMapToolWindow), 0, true, DisposalToken);
+                if (await ShowOnSolutionOpen())
+                {
+                    await ShowToolWindowAsync(typeof(MindMapToolWindow), 0, true, DisposalToken);
+                }
+
                 await LoadMindMapData();
+
                 return;
             }
 
@@ -148,6 +155,20 @@ namespace CodeMindMap
             SaveSolutionMindMapDataToSettings();
 
             await ReloadMindMapBrowser();
+        }
+
+        private async Task<bool> ShowOnSolutionOpen()
+        {
+            try
+            {
+                var general = await General.GetLiveInstanceAsync();
+                return general.ShowCodeMindMapOnSolutionOpen;
+            }
+            catch (Exception exception)
+            {
+                Debug.WriteLine($"Failed to read options: {exception.Message}");
+                return false;
+            }
         }
 
         public void SetDefaultSolutionMindMapData()
