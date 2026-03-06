@@ -26,6 +26,15 @@ See screenshots at [CodeMindMap.com](https://codemindmap.com/)
 
 ## Versions
 
+- **v1.20**
+  - Persist view type selection (left/right/flower) via autosave.
+  - Fix: direction not restored on load (mind.refresh skips direction).
+  - Feature: Reopen the diagram if it was open before the last reload.
+  - Feature: pressing ESC while editing a node exits edit and selects the node.
+  - Fix: focus map element on node select so keyboard shortcuts work on first click.
+  - Feature: save diagrams as .json with pretty printing, open accepts .json and .txt.
+  - Feature: reopen diagram automatically after window reload.
+
 - **v1.19**
   - "Code node added" status bar notification.
   - Improved navigation with searching code with the "moving window" approach.
