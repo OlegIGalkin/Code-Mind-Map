@@ -968,12 +968,19 @@ export class CodeMindMapPanel {
             });
 
             mind.bus.addListener('selectNode', node => {
+                // Keep keyboard shortcuts bound to the diagram after selecting a node.
+                mind.map?.focus();
                 vscode.postMessage({
                     action: 'nodeSelected',
                     nodeId: node.id,
                     nodeTopic: node.topic,
                     nodeData: node.data,
                 });
+            });
+
+            mind.bus.addListener('selectNewNode', () => {
+                // Mirror the same focus behavior for newly created nodes.
+                mind.map?.focus();
             });
 
             mind.bus.addListener('operation', operation => {
