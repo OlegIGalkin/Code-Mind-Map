@@ -272,7 +272,7 @@ const Et = function(e) {
     if (r === "Enter" || r === "Tab") {
       if (c.shiftKey) return;
       c.preventDefault(), t.blur(), this.container.focus();
-    }
+    } else r === "Escape" && (c.preventDefault(), t.textContent = o, t.blur(), this.container.focus());
   }), t.addEventListener("blur", () => {
     if (!t) return;
     t.remove();
@@ -957,7 +957,7 @@ function An(e) {
   let n = 0;
   e.spacePressed = !1;
   let o = null;
-  const s = /* @__PURE__ */ new Map(), i = e.editable ? Nn(e) : null;
+  const s = /* @__PURE__ */ new Map(), i = Nn(e);
   let l = null, c = null, r = null, a = null;
   const d = 500, h = 10, u = () => {
     l !== null && (clearTimeout(l), l = null, c = null, r = null, a = null);
@@ -1029,7 +1029,7 @@ function An(e) {
     }
     t.moved = !1;
     const w = f.target, k = e.mouseSelectionButton === 0 ? 2 : 0;
-    if (i && (f.button === 0 || f.pointerType === "touch")) {
+    if (e.editable && i && (f.button === 0 || f.pointerType === "touch")) {
       if (f.pointerType === "touch" && s.size > 1)
         (i.isDragging || i.pointerId !== null) && pe(e, i);
       else if (f.pointerType === "touch" && s.size === 1)
@@ -2082,7 +2082,7 @@ function eo(e) {
       }
     }
   }).on("beforestart", ({ event: o }) => {
-    if (e.spacePressed) return !1;
+    if (!e.editable || e.spacePressed) return !1;
     const s = o.target;
     if (s.id === "input-box" || s.className === "circle" || e.container.querySelector(".context-menu")?.contains(s))
       return !1;
@@ -2689,7 +2689,7 @@ const Go = {
   ...Xo,
   init(e) {
     if (e = JSON.parse(JSON.stringify(e)), !e || !e.nodeData) return new Error("MindElixir: `data` is required");
-    e.direction !== void 0 && (this.direction = e.direction), this.changeTheme(e.theme || this.theme, !1), this.nodeData = e.nodeData, G(this.nodeData), this.arrows = e.arrows || [], this.summaries = e.summaries || [], this.tidyArrow(), this.toolBar && Vn(this), this.keypress && xn(this, this.keypress), this.editable && (eo(this), this.disposable.push(Ln())), this.contextMenu && this.disposable.push(On(this, this.contextMenu)), this.allowUndo && this.disposable.push(jn(this)), this.layout(), this.linkDiv(), this.toCenter();
+    e.direction !== void 0 && (this.direction = e.direction), this.changeTheme(e.theme || this.theme, !1), this.nodeData = e.nodeData, G(this.nodeData), this.arrows = e.arrows || [], this.summaries = e.summaries || [], this.tidyArrow(), this.toolBar && Vn(this), this.keypress && xn(this, this.keypress), eo(this), this.disposable.push(Ln()), this.contextMenu && this.disposable.push(On(this, this.contextMenu)), this.allowUndo && this.disposable.push(jn(this)), this.layout(), this.linkDiv(), this.toCenter();
   },
   destroy() {
     this.disposable.forEach((e) => e()), this.el && (this.el.innerHTML = ""), this.el = void 0, this.nodeData = void 0, this.arrows = void 0, this.summaries = void 0, this.currentArrow = void 0, this.currentNodes = void 0, this.currentSummary = void 0, this.theme = void 0, this.direction = void 0, this.bus = void 0, this.container = void 0, this.map = void 0, this.lines = void 0, this.linkController = void 0, this.linkSvgGroup = void 0, this.P2 = void 0, this.P3 = void 0, this.line1 = void 0, this.line2 = void 0, this.nodes = void 0, this.selection?.destroy(), this.selection = void 0;
@@ -2712,7 +2712,7 @@ function qo({ pT: e, pL: t, pW: n, pH: o, cT: s, cL: i, cW: l, cH: c, direction:
   const m = Math.abs(h - y) / 300 * d;
   return r === B.LHS ? (g = t, v = g + d, p = g - d, u = i + d, `M ${v} ${h} C ${g} ${h} ${g + m} ${y} ${p} ${y} H ${u}`) : (g = t + n, v = g - d, p = g + d, u = i + l - d, `M ${v} ${h} C ${g} ${h} ${g - m} ${y} ${p} ${y} H ${u}`);
 }
-const Ko = "5.9.2";
+const Ko = "5.9.3";
 function Uo(e) {
   return {
     x: 0,
