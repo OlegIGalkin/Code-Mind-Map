@@ -1124,6 +1124,7 @@ export class CodeMindMapPanel {
                 }
 
                 mind.refresh(mindData);
+                mind.clearHistory();
 
                 const dataThemeName = getThemeName(mindData);
 
