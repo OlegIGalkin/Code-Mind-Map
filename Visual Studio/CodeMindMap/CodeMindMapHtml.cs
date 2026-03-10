@@ -369,6 +369,7 @@ namespace CodeMindMap
                 }
 
                 mind.refresh(mindData);
+                mind.clearHistory();
 
                 const dataThemeName = getThemeName(mindData);
 

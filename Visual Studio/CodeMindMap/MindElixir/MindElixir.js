@@ -1502,6 +1502,8 @@ function jn(e) {
       } catch {
       }
     }
+  }, e.clearHistory = function() {
+    t = [], n = -1, o = e.getData();
   };
   const i = function(r) {
     if (r.name === "beginEdit") return;
@@ -1515,7 +1517,8 @@ function jn(e) {
     };
     t.push(d), o = a, n = t.length - 1;
   }, l = function(r) {
-    (r.metaKey || r.ctrlKey) && (r.shiftKey && r.key === "Z" || r.key === "y") ? e.redo() : (r.metaKey || r.ctrlKey) && r.key === "z" && e.undo();
+    if (r.repeat) return;
+    (r.metaKey || r.ctrlKey) && (r.shiftKey && r.key === "Z" || r.key === "y") ? (e.redo(), r.preventDefault()) : (r.metaKey || r.ctrlKey) && r.key === "z" && (e.undo(), r.preventDefault());
   }, c = function() {
     s = e.currentNodes.map((r) => r.nodeObj);
   };
