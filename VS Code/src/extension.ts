@@ -1283,6 +1283,7 @@ export class CodeMindMapPanel {
                 case 'resetMindMap':
                     if (mind) {
                         mind.refresh(data);
+                        mind.clearHistory();
                     }
                     break;
                 case 'toggleColorScheme':
