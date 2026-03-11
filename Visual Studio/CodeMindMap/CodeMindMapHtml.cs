@@ -19,6 +19,7 @@ namespace CodeMindMap
     <meta charset=""UTF-8"">
     <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
     <title>Code Mind Map</title>
+    <link rel=""stylesheet"" href=""http://codemindmap.vsext/style.css"">
     <style>
         #map {
             width: 100%;
@@ -43,12 +44,6 @@ namespace CodeMindMap
                 el: '#map',
                 allowUndo: true,
                 toolBar: true,
-                view: {
-                    beforeSelect(el, node) {
-                        mind.currentNode = node;
-                        return true;
-                    }
-                }
             };
 
         const LIGHT_THEME = {
@@ -207,7 +202,9 @@ namespace CodeMindMap
                 };
             });
             
-            mind.bus.addListener('selectNode', node => {
+            mind.bus.addListener('selectNodes', nodes => {
+                const node = nodes[0];
+                if (!node) return;
                 window.chrome.webview.postMessage({
                     action: 'nodeSelected',
                     nodeId: node.id,
@@ -359,6 +356,12 @@ namespace CodeMindMap
 
                 const mindData = JSON.parse(mindDataString);
 
+                // Migrate v3/v4 linkData to v5 arrows format
+                if (mindData.linkData && !mindData.arrows) {
+                    mindData.arrows = Object.values(mindData.linkData);
+                    delete mindData.linkData;
+                }
+
                 // mind.refresh() does not restore direction (unlike mind.init()),
                 // so apply it manually before calling refresh so layout() picks it up.
                 if (typeof mindData.direction === 'number') {
@@ -366,6 +369,7 @@ namespace CodeMindMap
                 }
 
                 mind.refresh(mindData);
+                mind.clearHistory();
 
                 const dataThemeName = getThemeName(mindData);
 
