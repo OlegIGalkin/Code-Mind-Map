@@ -19,7 +19,7 @@ namespace CodeMindMap
     <meta charset=""UTF-8"">
     <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
     <title>Code Mind Map</title>
-    <link rel=""stylesheet"" href=""http://codemindmap.vsext/style.css"">
+    <link rel=""stylesheet"" href=""http://codemindmap.vsext/MindElixir.css"">
     <style>
         #map {
             width: 100%;
@@ -153,7 +153,7 @@ namespace CodeMindMap
                             expanded: true,
                             children: [
                                 {
-                                    topic: 'Alt+Scroll - Zoom in/out',
+                                    topic: 'Alt/Ctrl+Scroll - Zoom in/out',
                                     id: 'bd1c1cb51e6745d3',
                                 },
                                 {
@@ -247,34 +247,7 @@ namespace CodeMindMap
                     const targetNode = MindElixir.E(targetNodeId);
                     if (targetNode) mind.expandNode(targetNode);
                 }
-                else if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
-                    const currentNodeObj = mind.currentNode?.nodeObj
-                    if (currentNodeObj) {
-                        window.chrome.webview.postMessage({
-                            action: 'nodeCopy',
-                            nodeId: currentNodeObj.id,
-                            nodeTopic: currentNodeObj.topic,
-                            nodeData: currentNodeObj.data,
-                        });
-                    }
-                }
-            });
-
-            document.addEventListener('wheel', function(e) {
-                if (e.altKey) {
-                    e.preventDefault();
-                    const delta = e.deltaY;
-                    if (delta > 0) {
-                            // Handle scroll down
-                            if (mind.scaleVal < 0.6) return
-                            mind.scale((mind.scaleVal -= 0.2))
-                        } else if (delta < 0) {
-                            // Handle scroll up
-                            if (mind.scaleVal > 1.6) return
-                            mind.scale((mind.scaleVal += 0.2))
-                        }
-                }
-            }, { passive: false });        
+            });        
 
         }
 

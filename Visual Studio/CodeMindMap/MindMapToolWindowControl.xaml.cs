@@ -220,7 +220,13 @@ namespace CodeMindMap
         {
             try
             {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
                 IVsStatusbar statusBar = ServiceProvider.GlobalProvider.GetService(typeof(SVsStatusbar)) as IVsStatusbar;
+                if (statusBar == null)
+                {
+                    return;
+                }
 
                 statusBar.SetText("Code node added");
 
