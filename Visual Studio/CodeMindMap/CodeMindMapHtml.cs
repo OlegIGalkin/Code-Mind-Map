@@ -213,6 +213,11 @@ namespace CodeMindMap
                 });
             });
 
+            mind.bus.addListener('selectNewNode', () => {
+                // Mirror the same focus behavior for newly created nodes.
+                mind.map?.focus();
+            });
+
             mind.bus.addListener('operation', operation  => {
 				window.chrome.webview.postMessage({
 						action: 'mindMapOperation',

@@ -975,6 +975,11 @@ export class CodeMindMapPanel {
                 });
             });
 
+            mind.bus.addListener('selectNewNode', () => {
+                // Mirror the same focus behavior for newly created nodes.
+                mind.map?.focus();
+            });
+
             mind.bus.addListener('operation', operation => {
                 vscode.postMessage({
                     action: 'mindMapOperation',
