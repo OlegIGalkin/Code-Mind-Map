@@ -668,6 +668,8 @@ export class CodeMindMapPanel {
         // Get URI for local MindElixir library
         const mindElixirFileUri = vscode.Uri.joinPath(extensionUri, 'out', 'MindElixir', 'MindElixir.js');
         const mindElixirUri = webview.asWebviewUri(mindElixirFileUri);
+        const mindElixirStyleFileUri = vscode.Uri.joinPath(extensionUri, 'out', 'MindElixir', 'style.css');
+        const mindElixirStyleUri = webview.asWebviewUri(mindElixirStyleFileUri);
 
         return `<!DOCTYPE html>
 <html lang="en">
@@ -675,6 +677,7 @@ export class CodeMindMapPanel {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Code Mind Map</title>
+    <link rel="stylesheet" href="${mindElixirStyleUri}">
     <style>
         html, body { 
             height: 100%; 
@@ -782,12 +785,6 @@ export class CodeMindMapPanel {
                 el: '#map',
                 allowUndo: true,
                 toolBar: true,
-                view: {
-                    beforeSelect(el, node) {
-                        mind.currentNode = node;
-                        return true;
-                    }
-                }
             };
 
             const LIGHT_THEME = {
@@ -967,9 +964,9 @@ export class CodeMindMapPanel {
                 };
             });
 
-            mind.bus.addListener('selectNode', node => {
-                // Keep keyboard shortcuts bound to the diagram after selecting a node.
-                mind.map?.focus();
+            mind.bus.addListener('selectNodes', nodes => {
+                const node = nodes[0];
+                if (!node) return;
                 vscode.postMessage({
                     action: 'nodeSelected',
                     nodeId: node.id,
@@ -1119,6 +1116,12 @@ export class CodeMindMapPanel {
 
                 const mindData = JSON.parse(mindDataString);
 
+                // Migrate v3/v4 linkData to v5 arrows format
+                if (mindData.linkData && !mindData.arrows) {
+                    mindData.arrows = Object.values(mindData.linkData);
+                    delete mindData.linkData;
+                }
+
                 // mind.refresh() does not restore direction (unlike mind.init()),
                 // so apply it manually before calling refresh so layout() picks it up.
                 if (typeof mindData.direction === 'number') {
@@ -1126,6 +1129,7 @@ export class CodeMindMapPanel {
                 }
 
                 mind.refresh(mindData);
+                mind.clearHistory();
 
                 const dataThemeName = getThemeName(mindData);
 
@@ -1284,6 +1288,7 @@ export class CodeMindMapPanel {
                 case 'resetMindMap':
                     if (mind) {
                         mind.refresh(data);
+                        mind.clearHistory();
                     }
                     break;
                 case 'toggleColorScheme':
