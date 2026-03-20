@@ -26,6 +26,10 @@ See screenshots at [CodeMindMap.com](https://codemindmap.com/)
 
 ## Versions
 
+- **v1.21**
+  - MindElixir mind mapping engine is updated to v5.9.3. 
+  - Bugs fixed. 
+
 - **v1.20**
   - Persist view type selection (left/right/flower) via autosave.
   - Fix: direction not restored on load (mind.refresh skips direction).

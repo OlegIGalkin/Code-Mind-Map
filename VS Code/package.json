@@ -2,7 +2,7 @@
   "name": "code-mind-map",
   "displayName": "Code Mind Map",
   "description": "An extension for creating mind maps with nodes linked to code. Easily add code snippets as nodes and navigate between the mind map and your code files.",
-  "version": "1.20.0",
+  "version": "1.21.0",
   "publisher": "Kentich",
   "homepage": "https://codemindmap.com/",
   "repository": {
