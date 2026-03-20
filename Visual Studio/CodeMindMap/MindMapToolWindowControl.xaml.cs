@@ -340,8 +340,6 @@ namespace CodeMindMap
             OnNodeSelected(messageJson);
 
             OnNodeNavigateMindMapAction(messageJson);
-
-            OnNodeCopy(messageJson);
         }
 
         private async Task OnMindMapOperationAsync(string messageJson)
@@ -708,30 +706,6 @@ namespace CodeMindMap
             catch (Exception exception)
             {
                 Debug.WriteLine($"Navigation failed: {exception.Message}");
-            }
-        }
-
-        private void OnNodeCopy(string messageJson)
-        {
-            MindMapAction mindMapAction = DeserializeMindMapAction(messageJson);
-
-            if (mindMapAction == null)
-            {
-                return;
-            }
-
-            if (string.Compare(mindMapAction.Action, "nodeCopy", StringComparison.OrdinalIgnoreCase) != 0)
-            {
-                return;
-            }
-
-            try
-            {
-                Clipboard.SetText(mindMapAction.NodeTopic);
-            }
-            catch (Exception exception)
-            {
-                Debug.WriteLine($"Error copy to clipboard: {exception.Message}");
             }
         }
 

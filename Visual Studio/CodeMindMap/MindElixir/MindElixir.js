@@ -67,10 +67,10 @@ const le = function(e, t) {
     return null;
   } else
     return null;
-}, z = (e, t) => {
+}, K = (e, t) => {
   if (e.parent = t, e.children)
     for (let n = 0; n < e.children.length; n++)
-      z(e.children[n], e);
+      K(e.children[n], e);
 }, V = (e, t, n) => {
   if (e.expanded = t, e.children)
     if (n === void 0 || n > 0) {
@@ -84,7 +84,7 @@ const le = function(e, t) {
       });
 };
 function xe(e) {
-  if (e.id = K(), e.children)
+  if (e.id = z(), e.children)
     for (let t = 0; t < e.children.length; t++)
       xe(e.children[t]);
 }
@@ -97,11 +97,11 @@ function ce(e, t, n, o) {
     y2: o + Math.sin(h) * r
   };
 }
-function K() {
+function z() {
   return ((/* @__PURE__ */ new Date()).getTime().toString(16) + Math.random().toString(16).substring(2)).substring(2, 18);
 }
 const gt = function() {
-  const e = K();
+  const e = z();
   return {
     topic: this.newTopicName,
     id: e
@@ -371,7 +371,7 @@ const Lt = function({ map: e, direction: t }, n) {
   const o = t.nodeObj;
   o.expanded === !1 && (e.expandNode(t, !0), t = e.findEle(o.id));
   const s = n || e.generateNewObj();
-  o.children ? o.children.push(s) : o.children = [s], z(e.nodeData);
+  o.children ? o.children.push(s) : o.children = [s], K(e.nodeData);
   const { grp: i, top: l } = e.createWrapper(s);
   return ot(e, t, i), { newTop: l, newNodeObj: s };
 }, Mt = function(e, t, n) {
@@ -395,7 +395,7 @@ const Lt = function({ map: e, direction: t }, n) {
     const a = o.closest("me-main").className === B.LHS ? 0 : 1;
     i.direction = a;
   }
-  kt(i, e, s), z(this.nodeData);
+  kt(i, e, s), K(this.nodeData);
   const l = o.parentElement, { grp: c, top: r } = this.createWrapper(i);
   l.parentElement.insertAdjacentElement(st[e], c), this.linkDiv(c.offsetParent), n || this.editTopic(r.firstChild), this.bus.fire("operation", {
     name: "insertSibling",
@@ -410,7 +410,7 @@ const Lt = function({ map: e, direction: t }, n) {
   if (!o.parent)
     return;
   const s = t || this.generateNewObj();
-  Tt(o, s), z(this.nodeData);
+  Tt(o, s), K(this.nodeData);
   const i = n.parentElement.parentElement, { grp: l, top: c } = this.createWrapper(s, !0);
   c.appendChild(Ne(!0)), i.insertAdjacentElement("afterend", l);
   const r = this.createChildren([i]);
@@ -490,7 +490,7 @@ const Lt = function({ map: e, direction: t }, n) {
   const i = [];
   for (const c of e) {
     const r = c.nodeObj;
-    if (_t(t, r, s), z(o.nodeData), t === "in") {
+    if (_t(t, r, s), K(o.nodeData), t === "in") {
       const a = c.parentElement;
       ot(o, n, a.parentElement);
     } else {
@@ -537,7 +537,7 @@ const Lt = function({ map: e, direction: t }, n) {
   rmSubline: ee,
   setNodeTopic: Xt
 }, Symbol.toStringTag, { value: "Module" }));
-function zt(e) {
+function Kt(e) {
   return {
     nodeData: e.isFocusMode ? e.nodeDataBackup : e.nodeData,
     arrows: e.arrows,
@@ -546,7 +546,7 @@ function zt(e) {
     theme: e.theme
   };
 }
-const Kt = function(e) {
+const zt = function(e) {
   const t = this.container, n = e.getBoundingClientRect(), o = t.getBoundingClientRect();
   if (n.top > o.bottom - 50 || n.bottom < o.top + 50 || n.left > o.right - 50 || n.right < o.left + 50) {
     const i = n.left + n.width / 2, l = n.top + n.height / 2, c = o.left + o.width / 2, r = o.top + o.height / 2, a = i - c, d = l - r;
@@ -566,7 +566,7 @@ const Kt = function(e) {
       return n;
   });
 }, Jt = function() {
-  const e = zt(this);
+  const e = Kt(this);
   return _e(e);
 }, Zt = function() {
   return JSON.parse(this.getDataString());
@@ -660,7 +660,7 @@ const Kt = function(e) {
   }, c = s.x - l.x, r = s.y - l.y;
   this.move(c, r);
 }, gn = function(e) {
-  this.clearSelection(), e && (e = JSON.parse(JSON.stringify(e)), this.nodeData = e.nodeData, this.arrows = e.arrows || [], this.summaries = e.summaries || [], e.theme && this.changeTheme(e.theme)), z(this.nodeData), this.layout(), this.linkDiv();
+  this.clearSelection(), e && (e = JSON.parse(JSON.stringify(e)), this.nodeData = e.nodeData, this.arrows = e.arrows || [], this.summaries = e.summaries || [], e.theme && this.changeTheme(e.theme)), K(this.nodeData), this.layout(), this.linkDiv();
 }, mn = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   cancelFocus: cn,
@@ -680,7 +680,7 @@ const Kt = function(e) {
   refresh: gn,
   scale: tn,
   scaleFit: nn,
-  scrollIntoView: Kt,
+  scrollIntoView: zt,
   selectNode: Gt,
   selectNodes: qt,
   setLocale: fn,
@@ -746,8 +746,8 @@ function xn(e, t) {
     Enter: (r) => {
       r.shiftKey ? e.insertSibling("before") : r.ctrlKey || r.metaKey ? e.insertParent() : e.insertSibling("after");
     },
-    Tab: () => {
-      e.addChild();
+    Tab: (r) => {
+      r.ctrlKey || e.addChild();
     },
     F1: () => {
       e.toCenter();
@@ -1538,7 +1538,7 @@ const Hn = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//D
   const n = document.createElement("span");
   return n.id = e, n.innerHTML = Xn[t], n;
 };
-function zn(e) {
+function Kn(e) {
   const t = document.createElement("div"), n = U("toCenter", "living"), o = U("zoomout", "zoomout"), s = U("zoomin", "zoomin");
   return t.appendChild(n), t.appendChild(o), t.appendChild(s), t.className = "mind-elixir-toolbar rb", n.onclick = () => {
     e.toCenter();
@@ -1548,7 +1548,7 @@ function zn(e) {
     e.scale(e.scaleVal + e.scaleSensitivity);
   }, t;
 }
-function Kn(e) {
+function zn(e) {
   const t = document.createElement("div"), n = U("tbltl", "left"), o = U("tbltr", "right"), s = U("tblts", "side");
   return t.appendChild(n), t.appendChild(o), t.appendChild(s), t.className = "mind-elixir-toolbar lt", n.onclick = () => {
     e.initLeft();
@@ -1559,7 +1559,7 @@ function Kn(e) {
   }, t;
 }
 function Gn(e) {
-  e.container.append(zn(e)), e.container.append(Kn(e));
+  e.container.append(Kn(e)), e.container.append(zn(e));
 }
 class qn {
   _listeners = /* @__PURE__ */ new Map();
@@ -1633,7 +1633,7 @@ const Fe = (e, t = "px") => typeof e == "number" ? e + t : e, F = ({ style: e },
     case "shift":
       return e.shiftKey;
   }
-}) : !1), { abs: X, max: Xe, min: ze, ceil: Ke } = Math, Ge = (e = []) => ({
+}) : !1), { abs: X, max: Xe, min: Ke, ceil: ze } = Math, Ge = (e = []) => ({
   stored: e,
   selected: [],
   touched: [],
@@ -1832,7 +1832,7 @@ class Qn extends qn {
         }
         const d = this._options.mindElixirInstance;
         if (d && d.move) {
-          const h = n.x ? Ke(n.x / l) : 0, u = n.y ? Ke(n.y / l) : 0;
+          const h = n.x ? ze(n.x / l) : 0, u = n.y ? ze(n.y / l) : 0;
           (h || u) && (d.move(-h, -u), o.x1 -= h, o.y1 -= u);
         }
         i.next(t), requestAnimationFrame(a);
@@ -1878,7 +1878,7 @@ class Qn extends qn {
       }
     } = s;
     r < i.left + d.x ? (t.x = -X(i.left - r + d.x), r = r < i.left ? i.left : r) : r > i.right - d.x ? (t.x = X(i.left + i.width - r - d.x), r = r > i.right ? i.right : r) : t.x = 0, a < i.top + d.y ? (t.y = -X(i.top - a + d.y), a = a < i.top ? i.top : a) : a > i.bottom - d.y ? (t.y = X(i.top + i.height - a - d.y), a = a > i.bottom ? i.bottom : a) : t.y = 0;
-    const h = ze(l, r), u = ze(c, a), y = Xe(l, r), b = Xe(c, a);
+    const h = Ke(l, r), u = Ke(c, a), y = Xe(l, r), b = Xe(c, a);
     this._areaRect = Ye(h, u, y - h, b - u);
   }
   _redrawSelectionArea() {
@@ -2267,7 +2267,7 @@ const io = function(e, t, n) {
   v.labelEl = S, v.arrowObj = o, v.dataset.linkid = o.id, e.labelContainer.appendChild(S), e.linkSvgGroup.appendChild(v), fe(S), s || (e.arrows.push(o), e.currentArrow = v, ut(e, o, i, l));
 }, ro = function(e, t, n = {}) {
   const o = {
-    id: K(),
+    id: z(),
     label: "Custom Link",
     from: e.nodeObj.id,
     to: t.nodeObj.id,
@@ -2279,7 +2279,7 @@ const io = function(e, t, n) {
   });
 }, lo = function(e) {
   ue(this);
-  const t = { ...e, id: K() };
+  const t = { ...e, id: z() };
   Ae(this, this.findEle(t.from), this.findEle(t.to), t), this.bus.fire("operation", {
     name: "createArrow",
     obj: t
@@ -2444,13 +2444,13 @@ const vo = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   return R.appendChild(v), e.labelContainer.appendChild(x), fe(x), R.summaryObj = t, R.labelEl = x, d.appendChild(R), R;
 }, Co = function(e = {}) {
   if (!this.currentNodes) return;
-  const { currentNodes: t, summaries: n, bus: o } = this, { parent: s, start: i, end: l } = bo(t), c = { id: K(), parent: s, start: i, end: l, label: "summary", style: e.style }, r = De(this, c);
+  const { currentNodes: t, summaries: n, bus: o } = this, { parent: s, start: i, end: l } = bo(t), c = { id: z(), parent: s, start: i, end: l, label: "summary", style: e.style }, r = De(this, c);
   n.push(c), this.editSummary(r), o.fire("operation", {
     name: "createSummary",
     obj: c
   });
 }, So = function(e) {
-  const t = K(), n = { ...e, id: t };
+  const t = z(), n = { ...e, id: t };
   De(this, n), this.summaries.push(n), this.bus.fire("operation", {
     name: "createSummary",
     obj: n
@@ -2644,7 +2644,7 @@ const Yo = function(e = !1, t) {
   exportPng: Wo,
   exportSvg: Yo
 }, Symbol.toStringTag, { value: "Module" }));
-function zo(e, t) {
+function Ko(e, t) {
   return async function(...n) {
     const o = this.before[t];
     o && !await o.apply(this, n) || e.apply(this, n);
@@ -2653,9 +2653,9 @@ function zo(e, t) {
 const Je = Object.keys(it), pt = {};
 for (let e = 0; e < Je.length; e++) {
   const t = Je[e];
-  pt[t] = zo(it[t], t);
+  pt[t] = Ko(it[t], t);
 }
-const Ko = {
+const zo = {
   getObjById: le,
   generateNewObj: gt,
   layout: mt,
@@ -2674,7 +2674,7 @@ const Ko = {
   ...Xo,
   init(e) {
     if (e = JSON.parse(JSON.stringify(e)), !e || !e.nodeData) return new Error("MindElixir: `data` is required");
-    e.direction !== void 0 && (this.direction = e.direction), this.changeTheme(e.theme || this.theme, !1), this.nodeData = e.nodeData, z(this.nodeData), this.arrows = e.arrows || [], this.summaries = e.summaries || [], this.tidyArrow(), this.toolBar && Gn(this), this.keypress && xn(this, this.keypress), eo(this), this.disposable.push(Ln()), this.contextMenu && this.disposable.push(On(this, this.contextMenu)), this.allowUndo && this.disposable.push(jn(this)), this.layout(), this.linkDiv(), this.toCenter();
+    e.direction !== void 0 && (this.direction = e.direction), this.changeTheme(e.theme || this.theme, !1), this.nodeData = e.nodeData, K(this.nodeData), this.arrows = e.arrows || [], this.summaries = e.summaries || [], this.tidyArrow(), this.toolBar && Gn(this), this.keypress && xn(this, this.keypress), eo(this), this.disposable.push(Ln()), this.contextMenu && this.disposable.push(On(this, this.contextMenu)), this.allowUndo && this.disposable.push(jn(this)), this.layout(), this.linkDiv(), this.toCenter();
   },
   destroy() {
     this.disposable.forEach((e) => e()), this.el && (this.el.innerHTML = ""), this.el = void 0, this.nodeData = void 0, this.arrows = void 0, this.summaries = void 0, this.currentArrow = void 0, this.currentNodes = void 0, this.currentSummary = void 0, this.theme = void 0, this.direction = void 0, this.bus = void 0, this.container = void 0, this.map = void 0, this.lines = void 0, this.linkController = void 0, this.linkSvgGroup = void 0, this.P2 = void 0, this.P3 = void 0, this.line1 = void 0, this.line2 = void 0, this.nodes = void 0, this.selection?.destroy(), this.selection = void 0;
@@ -2748,7 +2748,7 @@ function I({
   const _ = document.createElement("div");
   _.className = "map-canvas", this.map = _, this.container.setAttribute("tabindex", "0"), this.container.appendChild(this.map), this.el.appendChild(this.container), this.nodes = document.createElement("me-nodes"), this.lines = Q("lines"), this.summarySvg = Q("summary"), this.linkController = Q("linkcontroller"), this.P2 = document.createElement("div"), this.P3 = document.createElement("div"), this.P2.className = this.P3.className = "circle", this.P2.style.display = this.P3.style.display = "none", this.line1 = Ie(), this.line2 = Ie(), this.linkController.appendChild(this.line1), this.linkController.appendChild(this.line2), this.linkSvgGroup = Q("topiclinks"), this.labelContainer = document.createElement("div"), this.labelContainer.className = "label-container", this.map.appendChild(this.nodes), this.overflowHidden ? this.container.style.overflow = "hidden" : this.disposable.push(An(this)), E && (this.pasteHandler = E);
 }
-I.prototype = Ko;
+I.prototype = zo;
 Object.defineProperty(I.prototype, "currentNode", {
   get() {
     return this.currentNodes[this.currentNodes.length - 1];
@@ -2764,7 +2764,7 @@ I.version = Vo;
 I.E = et;
 I.new = (e) => ({
   nodeData: {
-    id: K(),
+    id: z(),
     topic: e || "new topic",
     children: []
   }

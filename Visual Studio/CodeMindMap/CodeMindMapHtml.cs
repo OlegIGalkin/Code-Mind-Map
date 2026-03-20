@@ -37,7 +37,7 @@ namespace CodeMindMap
     <script type=""module"">
         import MindElixir from ""http://codemindmap.vsext/MindElixir.js"";
 
-        let mind, themeManager;
+        let mind, themeManager, lastSelectedNode;
 
         function initMindMap() {
             const options = {
@@ -165,19 +165,19 @@ namespace CodeMindMap
                                     id: 'bd1c1e12fd603ff6',
                                 },
                                 {
-                                    topic: 'tab - Create a child node',
+                                    topic: 'Tab - Create a child node',
                                     id: 'bd1b6892bcab126a',
                                 },
                                 {
-                                    topic: 'enter - Create a sibling node',
+                                    topic: 'Enter - Create a sibling node',
                                     id: 'bd1b6b632a434b27',
                                 },
                                 {
-                                    topic: 'del - Remove a node',
+                                    topic: 'Del - Remove a node',
                                     id: 'bd1b983085187c0a',
                                 },
                                 {
-                                    topic: 'space - Expand/collapse nodes',
+                                    topic: 'Space - Expand/collapse nodes',
                                     id: 'bd1bb2ac4bbab458',
                                 },
                             ],
@@ -203,8 +203,9 @@ namespace CodeMindMap
             });
             
             mind.bus.addListener('selectNodes', nodes => {
-                const node = nodes[0];
+                const node = nodes.at(-1);
                 if (!node) return;
+                lastSelectedNode = node;
                 window.chrome.webview.postMessage({
                     action: 'nodeSelected',
                     nodeId: node.id,
@@ -273,8 +274,9 @@ namespace CodeMindMap
             };
 
             try {
-                const targetNodeId = mind.currentNode?.nodeObj?.id || 'me-root';
+                const targetNodeId = mind.currentNode?.nodeObj?.id || lastSelectedNode?.id || 'me-root';
                 const targetNode = MindElixir.E(targetNodeId);
+                if (!targetNode) targetNode = MindElixir.E('me-root');
                 if (!targetNode) return { success: false, error: ""Target node not found"" };
                 mind.addChild(targetNode, childData);
                 mind.selectNode(MindElixir.E(childData.id));

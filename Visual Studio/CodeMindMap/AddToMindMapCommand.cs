@@ -1,11 +1,7 @@
 ﻿using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using System;
 using System.ComponentModel.Design;
 using System.Diagnostics;
-using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
 using Task = System.Threading.Tasks.Task;
 
 namespace CodeMindMap
@@ -89,20 +85,6 @@ namespace CodeMindMap
         /// <param name="e">Event args.</param>
         private async void Execute(object sender, EventArgs eventArgs)
         {
-            //ThreadHelper.ThrowIfNotOnUIThread();
-
-            //string message = string.Format(CultureInfo.CurrentCulture, "Inside {0}.MenuItemCallback()", this.GetType().FullName);
-            //string title = "AddToMindMapCommand";
-
-            //// Show a message box to prove we were here
-            //VsShellUtilities.ShowMessageBox(
-            //    this.package,
-            //    message,
-            //    title,
-            //    OLEMSGICON.OLEMSGICON_INFO,
-            //    OLEMSGBUTTON.OLEMSGBUTTON_OK,
-            //    OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-
             try
             {
                 var window = await package.FindToolWindowAsync(typeof(MindMapToolWindow), 0, false, package.DisposalToken) as MindMapToolWindow;

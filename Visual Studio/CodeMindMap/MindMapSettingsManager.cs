@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.Shell.Settings;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace CodeMindMap
 {
@@ -13,24 +14,38 @@ namespace CodeMindMap
 
         public MindMapSettingsManager(IServiceProvider serviceProvider)
         {
-            var shellSettingsManager = new ShellSettingsManager(serviceProvider);
-            _settingsStore = shellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
-
-            // Ensure our collection exists
-            if (!_settingsStore.CollectionExists(CollectionName))
+            try
             {
-                _settingsStore.CreateCollection(CollectionName);
+                var shellSettingsManager = new ShellSettingsManager(serviceProvider);
+                _settingsStore = shellSettingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
+
+                // Ensure our collection exists
+                if (!_settingsStore.CollectionExists(CollectionName))
+                {
+                    _settingsStore.CreateCollection(CollectionName);
+                }
+            }
+            catch (Exception exception)
+            {
+                Debug.WriteLine($"Error creating a settings store: {exception.Message}");
             }
         }
 
         public void SaveSolutionMindMapData(List<SolutionMindMapData> mindMaps)
         {
-            // Convert list to XML for storage
-            var serializer = new System.Xml.Serialization.XmlSerializer(typeof(List<SolutionMindMapData>));
-            using (var writer = new System.IO.StringWriter())
+            try
             {
-                serializer.Serialize(writer, mindMaps);
-                _settingsStore.SetString(CollectionName, SettingsPropertyName, writer.ToString());
+                // Convert list to XML for storage
+                var serializer = new System.Xml.Serialization.XmlSerializer(typeof(List<SolutionMindMapData>));
+                using (var writer = new System.IO.StringWriter())
+                {
+                    serializer.Serialize(writer, mindMaps);
+                    _settingsStore.SetString(CollectionName, SettingsPropertyName, writer.ToString());
+                }
+            }
+            catch (Exception exception)
+            {
+                Debug.WriteLine($"Error saving mind map data to settings: {exception.Message}");
             }
         }
 
