@@ -411,6 +411,10 @@ export class CodeMindMapPanel {
                         });
                         this.exportIfPathKnown();
                         break;
+
+                    case 'nodeCopy':
+                        await this.copyToClipboard(message.nodeTopic);
+                        break;
                 }
             },
             null,
@@ -423,6 +427,15 @@ export class CodeMindMapPanel {
                 await this.SaveToWorkspaceSettings();
             }
         });
+    }
+
+    private async copyToClipboard(text: string) {
+        try {
+            await vscode.env.clipboard.writeText(text);
+            //vscode.window.showInformationMessage('Text copied to clipboard!');
+        } catch (error) {
+            vscode.window.showErrorMessage('Failed to copy to clipboard');
+        }
     }
 
     private async SaveToWorkspaceSettings() {
@@ -668,7 +681,7 @@ export class CodeMindMapPanel {
         // Get URI for local MindElixir library
         const mindElixirFileUri = vscode.Uri.joinPath(extensionUri, 'out', 'MindElixir', 'MindElixir.js');
         const mindElixirUri = webview.asWebviewUri(mindElixirFileUri);
-        const mindElixirStyleFileUri = vscode.Uri.joinPath(extensionUri, 'out', 'MindElixir', 'style.css');
+        const mindElixirStyleFileUri = vscode.Uri.joinPath(extensionUri, 'out', 'MindElixir', 'MindElixir.css');
         const mindElixirStyleUri = webview.asWebviewUri(mindElixirStyleFileUri);
 
         return `<!DOCTYPE html>
@@ -777,7 +790,7 @@ export class CodeMindMapPanel {
         import MindElixir from '${mindElixirUri}';
         const vscode = acquireVsCodeApi();
 
-        let mind, data, themeManager;
+        let mind, data, themeManager, lastSelectedNode;
         let pendingImportData = null; // stores importMindMapData payload received before mind is ready
 
         function initMindMap() {
@@ -909,7 +922,7 @@ export class CodeMindMapPanel {
                             expanded: true,
                             children: [
                                 {
-                                    topic: 'Alt+Scroll - Zoom in/out',
+                                    topic: 'Ctrl/Alt+Scroll - Zoom in/out',
                                     id: 'bd1c1cb51e6745d3',
                                 },
                                 {
@@ -921,19 +934,19 @@ export class CodeMindMapPanel {
                                     id: 'bd1c1e12fd603ff6',
                                 },
                                 {
-                                    topic: 'tab - Create a child node',
+                                    topic: 'Tab - Create a child node',
                                     id: 'bd1b6892bcab126a',
                                 },
                                 {
-                                    topic: 'enter - Create a sibling node',
+                                    topic: 'Enter - Create a sibling node',
                                     id: 'bd1b6b632a434b27',
                                 },
                                 {
-                                    topic: 'del - Remove a node',
+                                    topic: 'Del - Remove a node',
                                     id: 'bd1b983085187c0a',
                                 },
                                 {
-                                    topic: 'space - Expand/collapse nodes',
+                                    topic: 'Space - Expand/collapse nodes',
                                     id: 'bd1bb2ac4bbab458',
                                 },
                             ],
@@ -965,8 +978,9 @@ export class CodeMindMapPanel {
             });
 
             mind.bus.addListener('selectNodes', nodes => {
-                const node = nodes[0];
+                const node = nodes.at(-1);
                 if (!node) return;
+                lastSelectedNode = node;
                 vscode.postMessage({
                     action: 'nodeSelected',
                     nodeId: node.id,
@@ -1009,31 +1023,19 @@ export class CodeMindMapPanel {
                     const targetNode = MindElixir.E(targetNodeId);
                     if (targetNode) mind.expandNode(targetNode);
                 }
-                else if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
-                    const nodeText = mind.currentNode?.nodeObj?.topic
-                    if (!nodeText) return;
-                    navigator.clipboard.writeText(nodeText)
-                        .then(() => console.log('Node text copied to clipboard'))
-                        .catch(err => console.error('Failed to copy text: ', err));
-                    e.preventDefault();
+                else if ((e.ctrlKey || e.metaKey) && e.code === 'KeyC') {
+                    const currentNodeObj = mind.currentNode?.nodeObj
+                    if (currentNodeObj) {
+                        vscode.postMessage({
+                            action: 'nodeCopy',
+                            nodeId: currentNodeObj.id,
+                            nodeTopic: currentNodeObj.topic,
+                            nodeData: currentNodeObj.data,
+                        });
+                    }
                 }
             });
 
-            document.addEventListener('wheel', function(e) {
-                if (e.altKey) {
-                    e.preventDefault();
-                    const delta = e.deltaY;
-                    if (delta > 0) {
-                            // Handle scroll down
-                            if (mind.scaleVal < 0.6) return
-                            mind.scale((mind.scaleVal -= 0.2))
-                        } else if (delta < 0) {
-                            // Handle scroll up
-                            if (mind.scaleVal > 1.6) return
-                            mind.scale((mind.scaleVal += 0.2))
-                        }
-                }
-            }, { passive: false });
         }
 
         window.addChildNode = function(topic = 'New Child Node', codeInfoObject) {
@@ -1054,8 +1056,9 @@ export class CodeMindMapPanel {
                 tags: [codeInfo.fileName]
             };
             try {
-                const targetNodeId = mind.currentNode?.nodeObj?.id || 'me-root';
+                const targetNodeId = mind.currentNode?.nodeObj?.id || lastSelectedNode?.id || 'me-root';
                 const targetNode = MindElixir.E(targetNodeId);
+                if (!targetNode) targetNode = MindElixir.E('me-root');
                 if (!targetNode) return { success: false, error: 'Target node not found' };
                 mind.addChild(targetNode, childData);
                 mind.selectNode(MindElixir.E(childData.id));

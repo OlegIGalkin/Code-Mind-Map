@@ -45,8 +45,8 @@ module.exports = {
                     to: 'MindElixir/MindElixir.js'
                 },
                 {
-                    from: 'MindElixir/style.css',
-                    to: 'MindElixir/style.css'
+                    from: 'MindElixir/MindElixir.css',
+                    to: 'MindElixir/MindElixir.css'
                 }
             ]
         })
