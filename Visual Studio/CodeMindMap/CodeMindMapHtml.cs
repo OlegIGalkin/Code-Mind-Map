@@ -387,6 +387,83 @@ namespace CodeMindMap
 
         };
 
+        window.resetMindMap = function() {
+            if (!mind) return;
+
+            const defaultData = {
+                nodeData: {
+                    id: 'me-root',
+                    topic: 'Code Mind Map',
+                    children: [
+                        {
+                            topic: 'Code',
+                            id: 'bd1f03fee1f63bc6',
+                            direction: 0,
+                            expanded: true,
+                            children: [
+                                {
+                                    topic: 'Ctrl+2, Ctrl+2 \u2014 add the selected code (line under the caret) as a node linked to the code.',
+                                    id: 'bd1f07c598e729dc',
+                                },
+                                {
+                                    topic: 'Ctrl+click on a node - jump to the code linked to the node.',
+                                    id: 'bd1bb4b14d6697c3',
+                                },
+                            ],
+                        },
+                        {
+                            topic: 'Mind Map',
+                            id: 'bd1b66c4b56754d9',
+                            direction: 1,
+                            expanded: true,
+                            children: [
+                                {
+                                    topic: 'Alt+Scroll - Zoom in/out',
+                                    id: 'bd1c1cb51e6745d3',
+                                },
+                                {
+                                    topic: 'Shift+Scroll - Scroll horizontally',
+                                    id: '16710cea5cfb50712c8832676b87d2cc',
+                                },
+                                {
+                                    topic: 'Right Click+Drag - Move the mind map',
+                                    id: 'bd1c1e12fd603ff6',
+                                },
+                                {
+                                    topic: 'tab - Create a child node',
+                                    id: 'bd1b6892bcab126a',
+                                },
+                                {
+                                    topic: 'enter - Create a sibling node',
+                                    id: 'bd1b6b632a434b27',
+                                },
+                                {
+                                    topic: 'del - Remove a node',
+                                    id: 'bd1b983085187c0a',
+                                },
+                                {
+                                    topic: 'space - Expand/collapse nodes',
+                                    id: 'bd1bb2ac4bbab458',
+                                },
+                            ],
+                        },
+                    ],
+                    expanded: true,
+                },
+                theme: themeManager.getTheme('Light'),
+                direction: 2
+            };
+
+            // mind.refresh() does not restore direction, so apply it manually first.
+            mind.direction = defaultData.direction;
+            mind.refresh(defaultData);
+            mind.clearHistory();
+
+            if (defaultData.theme && themeManager.contains(defaultData.theme.name) && defaultData.theme.name !== mind.theme?.name) {
+                mind.changeTheme(defaultData.theme);
+            }
+        };
+
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initMindMap);
         } else {
