@@ -1539,8 +1539,26 @@ const Hn = '<?xml version="1.0" standalone="no"?><!DOCTYPE svg PUBLIC "-//W3C//D
   return n.id = e, n.innerHTML = Xn[t], n;
 };
 function zn(e) {
-  const t = document.createElement("div"), o = z("toCenter", "living"), s = z("zoomout", "zoomout"), i = z("zoomin", "zoomin");
-  return t.appendChild(o), t.appendChild(s), t.appendChild(i), t.className = "mind-elixir-toolbar rb", o.onclick = () => {
+  const t = document.createElement("div"), n = z("fullscreen", "full"), o = z("toCenter", "living"), s = z("zoomout", "zoomout"), i = z("zoomin", "zoomin");
+  t.appendChild(n), t.appendChild(o), t.appendChild(s), t.appendChild(i), t.className = "mind-elixir-toolbar rb";
+  let l = null;
+  const c = () => {
+    const a = e.container.getBoundingClientRect(), d = Se(e.map.style.transform), h = a.width / 2, u = a.height / 2, y = (h - d.x) / e.scaleVal, v = (u - d.y) / e.scaleVal;
+    l = {
+      containerRect: a,
+      currentTransform: d,
+      mapCenterX: y,
+      mapCenterY: v
+    };
+  }, r = () => {
+    if (l) {
+      const a = e.container.getBoundingClientRect(), d = a.width / 2, h = a.height / 2, u = d - l.mapCenterX * e.scaleVal, y = h - l.mapCenterY * e.scaleVal, v = u - l.currentTransform.x, p = y - l.currentTransform.y;
+      e.move(v, p);
+    }
+  };
+  return e.el.addEventListener("fullscreenchange", r), n.onclick = () => {
+    c(), document.fullscreenElement !== e.el ? e.el.requestFullscreen() : document.exitFullscreen();
+  }, o.onclick = () => {
     e.toCenter();
   }, s.onclick = () => {
     e.scale(e.scaleVal - e.scaleSensitivity);
