@@ -1828,27 +1828,33 @@ class Qn extends qn {
       marginTop: -s.top,
       marginLeft: -s.left
     })) : (F(t, {
-    function zn(e) {
-      const t = document.createElement("div"), n = z("fullscreen", "full"), o = z("toCenter", "living"), s = z("zoomout", "zoomout"), i = z("zoomin", "zoomin");
-      t.appendChild(n), t.appendChild(o), t.appendChild(s), t.appendChild(i), t.className = "mind-elixir-toolbar rb";
-      let l = null;
-      const c = () => {
-        const a = e.container.getBoundingClientRect(), d = Se(e.map.style.transform), h = a.width / 2, u = a.height / 2, y = (h - d.x) / e.scaleVal, v = (u - d.y) / e.scaleVal;
-        l = {
-          containerRect: a,
-          currentTransform: d,
-          mapCenterX: y,
-          mapCenterY: v
-        };
-      }, r = () => {
-        if (l) {
-          const a = e.container.getBoundingClientRect(), d = a.width / 2, h = a.height / 2, u = d - l.mapCenterX * e.scaleVal, y = h - l.mapCenterY * e.scaleVal, v = u - l.currentTransform.x, p = y - l.currentTransform.y;
-          e.move(v, p);
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%"
+    }), F(o, {
+      marginTop: 0,
+      marginLeft: 0
+    }));
+  }
+  _onTapMove(t) {
+    const { _scrollSpeed: n, _areaLocation: o, _options: s, _frame: i } = this, { speedDivider: l } = s.behaviour.scrolling;
+    this._targetElement;
+    const { x: c, y: r } = ne(t);
+    if (o.x2 = c, o.y2 = r, this._lastMousePosition.x = c, this._lastMousePosition.y = r, this._scrollAvailable && !this._scrollingActive && (n.y || n.x)) {
+      this._scrollingActive = !0;
+      const a = () => {
+        if (!n.x && !n.y) {
+          this._scrollingActive = !1;
+          return;
         }
+        const d = this._options.mindElixirInstance;
+        if (d && d.move) {
+          const h = n.x ? ze(n.x / l) : 0, u = n.y ? ze(n.y / l) : 0;
+          (h || u) && (d.move(-h, -u), o.x1 -= h, o.y1 -= u);
+        }
+        i.next(t), requestAnimationFrame(a);
       };
-      return e.el.addEventListener("fullscreenchange", r), n.onclick = () => {
-        c(), document.fullscreenElement !== e.el ? e.el.requestFullscreen() : document.exitFullscreen();
-      }, o.onclick = () => {
       requestAnimationFrame(a);
     } else
       i.next(t);
