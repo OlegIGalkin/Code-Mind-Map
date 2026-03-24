@@ -21,6 +21,17 @@ namespace CodeMindMap
     <title>Code Mind Map</title>
     <link rel=""stylesheet"" href=""http://codemindmap.vsext/MindElixir.css"">
     <style>
+        .mind-elixir-toolbar #fullscreen {
+            display: none;
+        }
+        .mind-elixir-toolbar.rb {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .mind-elixir-toolbar.rb span + span {
+            margin-left: 0;
+        }
         #map {
             width: 100%;
             height: 100vh;
