@@ -1547,8 +1547,30 @@ function Kn(e) {
   const t = document.createElement("div"), n = U("fullscreen", "full"), o = U("toCenter", "living"), s = U("zoomout", "zoomout"), i = U("zoomin", "zoomin");
   t.appendChild(n), t.appendChild(o), t.appendChild(s), t.appendChild(i), t.className = "mind-elixir-toolbar rb";
   let l = null;
+  const f = () => {
+    let a = 0, d = 0;
+    try {
+      const h = window.getComputedStyle ? getComputedStyle(e.map) : e.map.style, u = h && h.transform || e.map.style.transform;
+      if (u && u !== "none") if (typeof DOMMatrixReadOnly < "u") {
+        const y = new DOMMatrixReadOnly(u);
+        a = y.m41, d = y.m42;
+      } else if (typeof DOMMatrix < "u") {
+        const y = new DOMMatrix(u);
+        a = y.m41, d = y.m42;
+      } else {
+        const y = u.match(/matrix\(([^)]+)\)/) || u.match(/matrix3d\(([^)]+)\)/);
+        if (y) {
+          const v = y[1].split(",").map((p) => parseFloat(p.trim()));
+          v.length >= 16 ? (a = v[12] || 0, d = v[13] || 0) : v.length >= 6 && (a = v[4] || 0, d = v[5] || 0);
+        }
+      }
+    } catch {
+      a = 0, d = 0;
+    }
+    return { x: a, y: d };
+  };
   const c = () => {
-    const a = e.container.getBoundingClientRect(), d = Se(e.map.style.transform), h = a.width / 2, u = a.height / 2, y = (h - d.x) / e.scaleVal, v = (u - d.y) / e.scaleVal;
+    const a = e.container.getBoundingClientRect(), d = f(), h = a.width / 2, u = a.height / 2, y = (h - d.x) / e.scaleVal, v = (u - d.y) / e.scaleVal;
     l = {
       containerRect: a,
       currentTransform: d,
@@ -1561,8 +1583,18 @@ function Kn(e) {
       e.move(v, p);
     }
   };
-  return e.el.addEventListener("fullscreenchange", r), n.onclick = () => {
-    c(), document.fullscreenElement !== e.el ? e.el.requestFullscreen() : document.exitFullscreen();
+  return document.addEventListener("fullscreenchange", r), e.disposable?.push(() => {
+    document.removeEventListener("fullscreenchange", r);
+  }), n.onclick = () => {
+    if (c(), document.fullscreenElement !== e.el) {
+      const a = e.el.requestFullscreen && e.el.requestFullscreen();
+      a && typeof a.then == "function" && typeof a.catch == "function" && a.catch(() => {
+      });
+    } else {
+      const a = document.exitFullscreen && document.exitFullscreen();
+      a && typeof a.then == "function" && typeof a.catch == "function" && a.catch(() => {
+      });
+    }
   }, o.onclick = () => {
 >>>>>>> 8a3772c (Handle fullscreen via host CSS and toolbar support)
     e.toCenter();

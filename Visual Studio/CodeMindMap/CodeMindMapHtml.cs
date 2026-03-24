@@ -24,8 +24,8 @@ namespace CodeMindMap
         .mind-elixir-toolbar #fullscreen {
             display: none;
         }
-        .mind-elixir-toolbar #fullscreen + span {
-            margin-left: 0 !important;
+        .mind-elixir-toolbar > span:first-of-type {
+            margin-left: 0;
         }
         #map {
             width: 100%;
