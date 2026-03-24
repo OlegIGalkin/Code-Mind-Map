@@ -699,6 +699,12 @@ export class CodeMindMapPanel {
             background: #1e1e1e; 
             color: #fff; 
         }
+        .mind-elixir-toolbar #fullscreen {
+            display: none;
+        }
+        .mind-elixir-toolbar #fullscreen + span {
+            margin-left: 0 !important;
+        }
         #container { 
             height: 100vh; 
             display: flex; 
