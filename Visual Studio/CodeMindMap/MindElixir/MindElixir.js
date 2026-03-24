@@ -1850,7 +1850,7 @@ class Qn extends qn {
         }
         const d = this._options.mindElixirInstance;
         if (d && d.move) {
-          const h = n.x ? ze(n.x / l) : 0, u = n.y ? ze(n.y / l) : 0;
+          const h = n.x ? Ve(n.x / l) : 0, u = n.y ? Ve(n.y / l) : 0;
           (h || u) && (d.move(-h, -u), o.x1 -= h, o.y1 -= u);
         }
         i.next(t), requestAnimationFrame(a);
