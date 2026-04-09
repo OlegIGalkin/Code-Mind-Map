@@ -2,6 +2,8 @@
 
 Source code for the Code Mind Map mind mapping extensions for Visual Studio and VS Code.
 
+![Creating a mind map node linked to code](CodeMindMapAnimatedGif_High_Quality.gif)
+
 Learn more at https://codemindmap.com/
 
 ## Releases
