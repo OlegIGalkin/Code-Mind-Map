@@ -100,19 +100,20 @@ export class CodeMindMapPanel {
     private _lastSelection: { text: string; document: vscode.TextDocument; line: number } | undefined;
     private _lastSelectedNode: { id: string; topic: string; data: any } | undefined;
     private _pendingSaveUri: vscode.Uri | undefined;
+    private static _sessionMindMapData: string | undefined; // Stores mind map state for restoration across window moves
 
     private requestExportMindMapData() {
         this._panel.webview.postMessage({ action: 'exportMindMapData' });
     }
 
-    private exportIfPathKnown() {
+    private initiateExportMindMapData() {
         if (CodeMindMapPanel._lastSavePath) {
             console.debug('Sending exportMindMapData message to webview');
             this._pendingSaveUri = CodeMindMapPanel._lastSavePath;
-            this.requestExportMindMapData();
         } else {
             console.debug('No last save path available');
         }
+        this.requestExportMindMapData();
     }
 
     public static createOrShow(extensionUri: vscode.Uri) {
@@ -149,20 +150,6 @@ export class CodeMindMapPanel {
         if (lastSavePath) {
             lastSavePath = toAbsoluteFromWorkspace(lastSavePath);
             CodeMindMapPanel._lastSavePath = vscode.Uri.file(lastSavePath);
-            // Load the mind map from the file. The webview may not be ready yet;
-            // the webview buffers this message and applies it once mind is initialized.
-            vscode.workspace.fs.readFile(CodeMindMapPanel._lastSavePath).then(
-                fileContent => {
-                    const data = new TextDecoder().decode(fileContent);
-                    panel.webview.postMessage({
-                        action: 'importMindMapData',
-                        data: data
-                    });
-                },
-                error => {
-                    vscode.window.showErrorMessage('Failed to load mind map: ' + error);
-                }
-            );
         }
 
     }
@@ -236,6 +223,14 @@ export class CodeMindMapPanel {
         this._panel.webview.onDidReceiveMessage(
             async message => {
                 switch (message.action) {
+                    case 'initMindMap':
+                        if (!CodeMindMapPanel.loadDataFromLastSavePath(this._panel)) {
+                            if (CodeMindMapPanel._sessionMindMapData) {
+                                this.importMindMapData(CodeMindMapPanel._sessionMindMapData);
+                            }
+                        }
+                        break;
+
                     case 'openDevTools':
                         vscode.commands.executeCommand('workbench.action.webview.openDeveloperTools');
                         break;
@@ -331,17 +326,19 @@ export class CodeMindMapPanel {
                         break;
 
                     case 'exportedMindMapData':
-                        if (this._pendingSaveUri && message.data) {
-                            try {
-                                await vscode.workspace.fs.writeFile(
-                                    this._pendingSaveUri,
-                                    new TextEncoder().encode(message.data)
-                                );
-                                //vscode.window.showInformationMessage('Mind map saved successfully');
-                            } catch (error) {
-                                vscode.window.showErrorMessage('Failed to save mind map: ' + error);
+                        if (message.data) {
+                            CodeMindMapPanel._sessionMindMapData = message.data
+                            if (this._pendingSaveUri) {
+                                try {
+                                    await vscode.workspace.fs.writeFile(
+                                        this._pendingSaveUri,
+                                        new TextEncoder().encode(message.data)
+                                    );
+                                } catch (error) {
+                                    vscode.window.showErrorMessage('Failed to save mind map: ' + error);
+                                }
+                                this._pendingSaveUri = undefined;
                             }
-                            this._pendingSaveUri = undefined;
                         }
                         break;
 
@@ -365,10 +362,8 @@ export class CodeMindMapPanel {
                                 CodeMindMapPanel._lastSavePath = openUri[0];
                                 await this.SaveToWorkspaceSettings();
 
-                                this._panel.webview.postMessage({
-                                    action: 'importMindMapData',
-                                    data: data
-                                });
+                                CodeMindMapPanel._sessionMindMapData = data
+                                this.importMindMapData(data);
 
                             } catch (error) {
                                 vscode.window.showErrorMessage('Failed to load mind map data: ' + error);
@@ -391,6 +386,7 @@ export class CodeMindMapPanel {
                         
                         if (result === 'OK') {
                             CodeMindMapPanel._lastSavePath = undefined;
+                            CodeMindMapPanel._sessionMindMapData = undefined;
                             this._pendingSaveUri = undefined;
                             this._panel.webview.postMessage({
                                 action: 'resetMindMap'
@@ -402,14 +398,14 @@ export class CodeMindMapPanel {
                         console.debug('mindMapOperation received: ' + message.operationName);
                         console.debug('Last save path:', CodeMindMapPanel._lastSavePath);
                         
-                        this.exportIfPathKnown();
+                        this.initiateExportMindMapData();
                         break;
 
                     case 'toggleColorScheme':
                         this._panel.webview.postMessage({
                             action: 'toggleColorScheme'
                         });
-                        this.exportIfPathKnown();
+                        this.initiateExportMindMapData();
                         break;
 
                     case 'nodeCopy':
@@ -427,6 +423,33 @@ export class CodeMindMapPanel {
                 await this.SaveToWorkspaceSettings();
             }
         });
+    }
+
+    private importMindMapData(data: string) {
+        this._panel.webview.postMessage({
+            action: 'importMindMapData',
+            data: data
+        });
+    }
+
+    private static loadDataFromLastSavePath(panel: vscode.WebviewPanel): boolean {
+        if (!CodeMindMapPanel._lastSavePath) {
+            return false;
+        }
+        vscode.workspace.fs.readFile(CodeMindMapPanel._lastSavePath).then(
+            fileContent => {
+                const data = new TextDecoder().decode(fileContent);
+                CodeMindMapPanel._sessionMindMapData = data
+                panel.webview.postMessage({
+                    action: 'importMindMapData',
+                    data: data
+                });
+            },
+            error => {
+                vscode.window.showErrorMessage('Failed to load mind map: ' + error);
+            }
+        );
+        return true;
     }
 
     private async copyToClipboard(text: string) {
@@ -1036,6 +1059,7 @@ export class CodeMindMapPanel {
                 }
             });
 
+            vscode.postMessage({ action: 'initMindMap' });
         }
 
         window.addChildNode = function(topic = 'New Child Node', codeInfoObject) {
