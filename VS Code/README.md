@@ -2,6 +2,8 @@
 
 An extension for creating mind maps with nodes linked to code. Easily add code snippets as nodes and navigate between the mind map and your code files.
 
+![Code Mind Map Demo GIF](https://raw.githubusercontent.com/OlegIGalkin/Code-Mind-Map/main/CodeMindMapAnimatedGif_High_Quality.gif)
+
 ## 1. Open the Mind Map Window
 - Run the `Open Code Mind Map Panel` command from the Command Palette (Ctrl+Shift+P)
 
@@ -25,6 +27,9 @@ That's it! Start visualizing and navigating your code faster with **Code Mind Ma
 See screenshots at [CodeMindMap.com](https://codemindmap.com/)
 
 ## Versions
+
+- **v1.21.1**
+  - Fixed issue: "Mind map is lost when moving tab to new window". 
 
 - **v1.21**
   - MindElixir mind mapping engine is updated to v5.9.3. 
