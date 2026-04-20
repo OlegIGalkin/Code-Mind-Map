@@ -298,7 +298,7 @@ namespace CodeMindMap
             return sb.ToString();
         }
 
-        private void NewCodeMindMapClick(object sender, RoutedEventArgs eventArgs)
+        private async void NewCodeMindMapClick(object sender, RoutedEventArgs eventArgs)
         {
             var dialogResult = MessageBox.Show("Create a new code mind map?", "Code Mind Map", MessageBoxButton.OKCancel, MessageBoxImage.Exclamation);
 
@@ -311,7 +311,10 @@ namespace CodeMindMap
             MindMapPackage?.SetDefaultSolutionMindMapData();
             MindMapPackage?.SaveSolutionMindMapDataToSettings();
 
-            ReloadMindMapBrowser();
+            if (IsBrowserReady)
+            {
+                await MindMapBrowser.ExecuteScriptAsync("resetMindMap();");
+            }
         }
 
         public void ReloadMindMapBrowser()
