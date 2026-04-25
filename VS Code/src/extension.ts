@@ -722,6 +722,17 @@ export class CodeMindMapPanel {
             background: #1e1e1e; 
             color: #fff; 
         }
+        .mind-elixir-toolbar #fullscreen {
+            display: none;
+        }
+        .mind-elixir-toolbar.rb {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .mind-elixir-toolbar.rb span + span {
+            margin-left: 0;
+        }
         #container { 
             height: 100vh; 
             display: flex; 
